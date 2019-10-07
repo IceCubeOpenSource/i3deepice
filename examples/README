@@ -10,4 +10,4 @@ bash /data/user/tglauch/DeepIceLearning/I3Module/examples/singularity_env.sh /da
 
 For running on a GPU start a condor job with avx support and CUDA availability (see gpu_job.sub for an example)
 
-To run an interative job: condor_submit -interactive gpu_job.sub
+To run an interative GPU job run first: condor_submit -interactive gpu_job.sub
