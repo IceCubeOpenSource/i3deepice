@@ -1,0 +1,9 @@
+request_gpus = 1
+request_cpus = 1 
+request_memory = 3GB
+output = /data/user/tglauch/test.out
+error = /data/user/tglauch/test.err
+log = /scratch/tglauch/test.log
+Requirements = has_avx
+Requirements=CUDACapability
+queue 1
