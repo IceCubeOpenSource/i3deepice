@@ -3,8 +3,8 @@ from I3Tray import *
 import sys
 import numpy as np
 import os
-sys.path.append(os.environ['DNN_BASE'])
-from i3module import DeepLearningClassifier
+#sys.path.append(os.environ['DNN_BASE'])
+from i3deepice.i3module import DeepLearningClassifier
 import argparse
 
 def print_info(phy_frame):
