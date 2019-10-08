@@ -15,7 +15,7 @@ All the functionality is provided over the main script `i3module.py`. There are 
 
 Note that for the second cases it's required that the location of the module is in your `PYTHONPATH` envivornment variable
 
-An example of how it can be used in an icetray module is given in `./examples/` where you also find a `README` with specific information of the usage with singularity on IceCube's NPX cluster
+An example on how the tool can be used inside an icetray module is given in `./examples/`. In the same folder you also find an additional `README` with specific information of the usage with singularity on IceCube's NPX cluster
 
 
 # 1 Running on a GPU
