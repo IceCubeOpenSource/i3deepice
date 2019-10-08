@@ -4,7 +4,7 @@
 import setuptools
 
 
-with open("README.rst") as readme:
+with open("README.md") as readme:
     long_description = readme.read()
 
 setuptools.setup(
@@ -15,7 +15,7 @@ setuptools.setup(
     description="DeepIceLearning Icetray Module",
     long_description=long_description,
     long_description_content_type="text/x-rst",
-    url="https://github.com/tglauch/DeepIceLearning_Module/",
+    url="https://github.com/tglauch/i3deepice/",
     project_urls={
         "Source": "https://github.com/tglauch/i3deepice/",
         "Tracker": "https://github.com/tglauch/i3deepice/issues/"
@@ -33,5 +33,6 @@ setuptools.setup(
     install_requires=[
         'tensorflow>=1.5',
         'keras>=2.0',
-        'numpy>1.14']
+        'numpy>1.14'],
+    packages = ['i3deepice']
     )
