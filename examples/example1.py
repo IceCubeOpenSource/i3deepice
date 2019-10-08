@@ -51,7 +51,7 @@ if __name__ == "__main__":
                    pulsemap=args.pulsemap,
                    batch_size=args.batch_size,
                    n_cores=args.n_cores,
-                   remove_daq=args.keep_daq,
+                   remove_daq=args.remove_daq,
                    model=args.model)
     tray.AddModule(print_info, 'printer',
                    Streams=[icetray.I3Frame.Physics])
