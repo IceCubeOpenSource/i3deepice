@@ -294,7 +294,6 @@ def oneHotEncode_4_evtypes_tau_decay_length(x, r_vals):
     track = [0., 1., 0., 0.]
     doublebang = [0., 0., 1., 0.]
     s_track = [0., 0., 0., 1.]
-    
     cut = 5. # aus config auslesen, no hardcode
     # map x to possible classes
     if int(x) in [5, 6]:
@@ -315,12 +314,6 @@ def oneHotEncode_Starting_padding0(x, r_vals):
     dir = dataclasses.I3Direction(r_vals["dir_x"], r_vals["dir_y"], r_vals["dir_z"])
     gcdfile = "/cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_2013.56429_V0.i3.gz"
     padding = 0 # aus config auslesen, no hardcode
-#    print "Used Padding:  {}m".format(padding)
-#    print parser_dict
-#    print pos
-#    print dir
-#    print "Nice"  
- 
     surface = icecube.MuonGun.ExtrudedPolygon.from_file(gcdfile,
                                                         padding=padding)
     intersections = surface.intersection(pos, dir)
