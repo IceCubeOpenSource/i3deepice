@@ -5,7 +5,6 @@ import os
 dirname = os.path.dirname(__file__)
 sys.path.insert(0, os.path.join(dirname, 'lib/'))
 sys.path.insert(0, os.path.join(dirname, 'models/'))
-print sys.path
 from model_parser import parse_functional_model
 from helpers import *
 import numpy as np
@@ -54,11 +53,11 @@ class DeepLearningClassifier(icetray.I3ConditionalModule):
         self.__out_shapes = self.__runinfo['out_shapes']
         self.__inp_trans = self.__runinfo['inp_trans']
         self.__out_trans = self.__runinfo['out_trans']
-        self.__pulsemap = self.GetParameter("pulsemap") 
+        self.__pulsemap = self.GetParameter("pulsemap")
         self.__save_as =  self.GetParameter("save_as")
         self.__batch_size =  self.GetParameter("batch_size")
         self.__n_cores =  self.GetParameter("n_cores")
-        self.__remove_daq = self.GetParameter("remove_daq") 
+        self.__remove_daq = self.GetParameter("remove_daq")
         self.__frame_buffer = []
         self.__buffer_length = 0
         self.__num_pframes = 0
@@ -99,8 +98,8 @@ class DeepLearningClassifier(icetray.I3ConditionalModule):
 
 
     def BatchProcessBuffer(self, frames):
-        """Batch Process a list of frames. This includes pre-processing, prediction and storage of the results  
-        """        
+        """Batch Process a list of frames. This includes pre-processing, prediction and storage of the results
+        """
         timer_t0 = time.time()
         f_slices = []
         if self.__num_pframes == 0:
@@ -151,7 +150,7 @@ class DeepLearningClassifier(icetray.I3ConditionalModule):
         return
 
     def Physics(self, frame):
-        """ Buffer physics frames until batch size is reached, then start processing  
+        """ Buffer physics frames until batch size is reached, then start processing
         """
         self.__frame_buffer.append(frame)
         self.__buffer_length += 1
@@ -173,7 +172,7 @@ class DeepLearningClassifier(icetray.I3ConditionalModule):
         return
 
     def Finish(self):
-        """ Process the remaining (incomplete) batch of frames  
+        """ Process the remaining (incomplete) batch of frames
         """
         self.BatchProcessBuffer(self.__frame_buffer)
         for frame in self.__frame_buffer:
@@ -207,7 +206,7 @@ def parseArguments():
     parser.add_argument(
         "--model", type=str, default='classification')
     parser.add_argument(
-        "--outfile", type=str, default="~/myhdf.i3.bz2")    
+        "--outfile", type=str, default="~/myhdf.i3.bz2")
     args = parser.parse_args()
     return args
 
