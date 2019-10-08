@@ -56,9 +56,7 @@ loss_weights = {'Target1': 1.}
 loss_functions = ["mse"]
 metrics = ['mae', 'mse']
 # Step 4: Define the model using Keras functional API
-
 output_names = {0: 'mu_E_on_entry'}
-
 
 def inception_block4(input_tensor, n, t0=2, t1=4, t2=5, n_pool=3, scale=0.1):
 
@@ -114,7 +112,6 @@ def model(input_shapes, output_shapes):
     ### Most important: Define your model using the functional API of Keras
     # https://keras.io/getting-started/functional-api-guide/
 
-
     # The Input
     input_b1 = keras.layers.Input(
         shape=input_shapes['Branch_IC_time']['general'],
@@ -140,9 +137,13 @@ def model(input_shapes, output_shapes):
         z1 = inception_resnet(z1, 32, t2=3)
         z1 = inception_resnet(z1, 32, t2=4)
         z1 = inception_resnet(z1, 32, t2=5)
-    z1 = keras.layers.Conv3D(4096, (1, 1, 1), activation='relu',
+    z1 = keras.layers.Conv3D(1024, (1, 1, 1), activation='relu',
             padding="same", name='conv1x1x1')(z1)
-    z1 = keras.layers.GlobalAveragePooling3D()(z1)
+    z1 =  keras.layers.Conv3D(4, (5, 5, 10), activation='relu',
+            padding="valid", name='conv5x5x10')(z1)
+    z1 =  keras.layers.Conv3D(64, (1, 1, 1), activation='relu',
+            padding="valid", name='conv_final')(z1)
+    z1 = keras.layers.Flatten(data_format=K.image_data_format())(z1)
     print('out shape {}'.format(output_shapes["Out1"]["general"][0]))
     output_b1 = keras.layers.Dense(output_shapes["Out1"]["general"][0],
                                    activation="linear",
