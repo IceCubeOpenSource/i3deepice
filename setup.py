@@ -8,7 +8,7 @@ with open("README.rst") as readme:
     long_description = readme.read()
 
 setuptools.setup(
-    name="DeepIceLearning Module",
+    name="DeepIceLearning_Module",
     version="0.1",
     author="Theo Glauch",
     author_email="theo.glauch@tum.de",
