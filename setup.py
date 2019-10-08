@@ -8,7 +8,7 @@ with open("README.rst") as readme:
     long_description = readme.read()
 
 setuptools.setup(
-    name="DeepIceLearning_Module",
+    name="i3deepice",
     version="0.1",
     author="Theo Glauch",
     author_email="theo.glauch@tum.de",
@@ -17,8 +17,8 @@ setuptools.setup(
     long_description_content_type="text/x-rst",
     url="https://github.com/tglauch/DeepIceLearning_Module/",
     project_urls={
-        "Source": "https://github.com/tglauch/DeepIceLearning_Module/",
-        "Tracker": "https://github.com/tglauch/DeepIceLearning_Module/issues/"
+        "Source": "https://github.com/tglauch/i3deepice/",
+        "Tracker": "https://github.com/tglauch/i3deepice/issues/"
         },
     license="GPLv3",
     classifiers=[
