@@ -38,7 +38,7 @@ class DeepLearningClassifier(icetray.I3ConditionalModule):
                           "Deep_Learning_Classification")
         self.AddParameter("batch_size", "Size of the batches", 40)
         self.AddParameter("n_cores", "number of cores to be used", 4)
-        self.AddParameter("keep_daq", "whether or not to keep Q-Frames", True)
+        self.AddParameter("remove_daq", "whether or not to remove Q-Frames", False)
         self.AddParameter("model", "which model to use", 'classification')
 
     def Configure(self):
@@ -58,7 +58,7 @@ class DeepLearningClassifier(icetray.I3ConditionalModule):
         self.__save_as =  self.GetParameter("save_as")
         self.__batch_size =  self.GetParameter("batch_size")
         self.__n_cores =  self.GetParameter("n_cores")
-        self.__keep_daq = self.GetParameter("keep_daq") 
+        self.__remove_daq = self.GetParameter("remove_daq") 
         self.__frame_buffer = []
         self.__buffer_length = 0
         self.__num_pframes = 0
@@ -148,6 +148,7 @@ class DeepLearningClassifier(icetray.I3ConditionalModule):
         print('Total Time {:.2f}s [{:.2f}s], Processing Time {:.2f}s [{:.2f}s], Prediction Time {:.3f}s [{:.3f}s]'.format(
                 tot_time, tot_time/i, processing_time, processing_time/i,
                 prediction_time, prediction_time/i))
+        return
 
     def Physics(self, frame):
         """ Buffer physics frames until batch size is reached, then start processing  
@@ -162,12 +163,14 @@ class DeepLearningClassifier(icetray.I3ConditionalModule):
             self.__frame_buffer[:] = []
             self.__buffer_length = 0
             self.__num_pframes = 0
+        return
 
     def DAQ(self,frame):
         """ Handel Q-Frames. Append to buffer if they should be kept
         """
-        if self.__keep_daq:
+        if not self.__remove_daq:
             self.__frame_buffer.append(frame)
+        return
 
     def Finish(self):
         """ Process the remaining (incomplete) batch of frames  
@@ -176,6 +179,7 @@ class DeepLearningClassifier(icetray.I3ConditionalModule):
         for frame in self.__frame_buffer:
             self.PushFrame(frame)
         self.__frame_buffer[:] = []
+        return
 
 
 def print_info(phy_frame):
@@ -199,7 +203,7 @@ def parseArguments():
     parser.add_argument(
         "--n_cores", type=int, default=4)
     parser.add_argument(
-        "--keep_daq", action='store_true', default=False)
+        "--remove_daq", action='store_true', default=False)
     parser.add_argument(
         "--model", type=str, default='classification')
     parser.add_argument(
@@ -224,7 +228,7 @@ if __name__ == "__main__":
                    pulsemap=args.pulsemap,
                    batch_size=args.batch_size,
                    n_cores=args.n_cores,
-                   keep_daq=args.keep_daq,
+                   remove_daq=args.remove_daq,
                    model=args.model)
     tray.AddModule(print_info, 'printer',
                    Streams=[icetray.I3Frame.Physics])
