@@ -24,7 +24,7 @@ An example on how the tool can be used inside an icetray module is given in `./e
 
 # 2 Running on a GPU
 
-Running the model on a GPU is around 20-30 times quicker then on a CPU (~100ms/event instead of ~2s/event). For running the module on a GPU it is required that you have all the required Nvidia drivers avaialble on your machine. 
+Running the model on a GPU is around 20-30 times quicker then on a CPU (~100ms/event instead of ~2s/event on one core). For running the module on a GPU it is required that you have all the required Nvidia drivers avaialble on your machine. 
 This includes:
   - Nvidia GPU drivers
   - CUDA Toolkit
