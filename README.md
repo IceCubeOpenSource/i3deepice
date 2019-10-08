@@ -16,3 +16,14 @@ All the functionality is provided over the main script `i3module.py`. There are 
 Note that for the second cases it's required to set an environment variable `DNN_BASE` by first running `export DNN_BASE=/path/to/the/i3module/folder/`
 
 An example of how it can be used in an icetray module is given in `./examples/` where you also find a `README` with specific information of the usage with singularity on IceCube's NPX cluster
+
+
+# 1 Running on a GPU
+
+Running the model on a GPU is around 20-30 times quicker then on a CPU (100ms instead of ~2s). For running the module on a GPU it is required that you have all the required Nvidia drivers avaialble on your machine. 
+This includes:
+  - Nvidia GPU drivers
+  - CUDA Toolkit
+  - cuDNN
+  
+As mentioned above there is a singularity/docker container which has a working version of the libraries. The only thing that is needed in this cases are the Nvidia GPU drivers (see `https://www.tensorflow.org/install/docker` for reference).
