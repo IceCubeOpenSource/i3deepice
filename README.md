@@ -26,4 +26,4 @@ This includes:
   - CUDA Toolkit
   - cuDNN
   
-As mentioned above there is a singularity/docker container which has a working version of the libraries. The only thing that is needed in this cases are the Nvidia GPU drivers (see `https://www.tensorflow.org/install/docker` for reference). For an example of how the singularity command could look like compare the environment script in `./examples/singularity_env.sh`.
+As mentioned above there is a singularity/docker container which has a working version of the libraries. The only thing that is needed in this cases are the Nvidia GPU drivers (see `https://www.tensorflow.org/install/docker` for reference). For an example of how the singularity command could look like consult the environment script in `./examples/singularity_env.sh`.
