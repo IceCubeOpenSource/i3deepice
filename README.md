@@ -10,14 +10,14 @@ The IceCube public repository provides a docker/singularity contrainer with all 
 
 # 1. Installation & Usage
 
-The package can be simply installed by running `pip install setup.py`. As an alternative you can just add the path to the tool's main folder to the `$PYTHONPATH` enviromental variable. 
+The package can be simply installed by running `pip install setup.py`. As an alternative add the path to the tool's main folder to your `$PYTHONPATH`. 
 
 All the functionality is then provided by the main script `i3module.py`. There are two ways of running the software after loading the icecube environment (and potential GPU libraries).
 
-1. Directly: `python i3module.py --files /path/to/some/i3/files.i3 `
-2. As a part of an icetray module by importing it, i.e. `from i3deepice.i3module import DeepLearningClassifier`
+1. As a part of an icetray module by importing it, i.e. `from i3deepice.i3module import DeepLearningClassifier`
+2. Directly: `python i3module.py --files /path/to/some/i3/files.i3 `
 
-(Note that for the second cases it's required that the location of the module is in your `PYTHONPATH` envivornment variable)
+(Note that for the first case it's required that the location of the module is in your `PYTHONPATH` envivornment variable)
 
 An example on how the tool can be used inside an icetray module is given in `./examples/`. In the same folder you also find an additional `README` with specific information of the usage with singularity on IceCube's NPX cluster
 
