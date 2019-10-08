@@ -13,7 +13,7 @@ All the functionality is provided over the main script `i3module.py`. There are 
 1. Directly: `python i3module.py --files /path/to/some/i3/files.i3 `
 2. As a part of an icetray module by importing it, i.e. `from i3module import DeepLearningClassifier`
 
-Note that for the second cases it's required to set an environment variable `DNN_BASE` by first running `export DNN_BASE=/path/to/the/i3module/folder/`
+Note that for the second cases it's required that the location of the module is in your 'PYTHONPATH' envivornment variable
 
 An example of how it can be used in an icetray module is given in `./examples/` where you also find a `README` with specific information of the usage with singularity on IceCube's NPX cluster
 
