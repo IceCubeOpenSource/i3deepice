@@ -26,11 +26,11 @@ def parseArguments():
     parser.add_argument(
         "--n_cores", type=int, default=1)
     parser.add_argument(
-        "--keep_daq", action='store_true', default=True)
+        "--remove_daq", action='store_true', default=False)
     parser.add_argument(
         "--model", type=str, default='classification')
     parser.add_argument(
-        "--outfile", type=str, default="/home/tglauch/dnn_out_test.i3.bz2")    
+        "--outfile", type=str, default="./myhdf.i3")
     args = parser.parse_args()
     return args
 
@@ -51,7 +51,7 @@ if __name__ == "__main__":
                    pulsemap=args.pulsemap,
                    batch_size=args.batch_size,
                    n_cores=args.n_cores,
-                   keep_daq=args.keep_daq,
+                   remove_daq=args.keep_daq,
                    model=args.model)
     tray.AddModule(print_info, 'printer',
                    Streams=[icetray.I3Frame.Physics])
