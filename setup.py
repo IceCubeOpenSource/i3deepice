@@ -34,5 +34,5 @@ setuptools.setup(
         'tensorflow>=1.5',
         'keras>=2.0',
         'numpy>1.14'],
-    packages = ['i3deepice']
+    packages = setuptools.find_packages()
     )
