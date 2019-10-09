@@ -64,7 +64,7 @@ class DeepLearningClassifier(icetray.I3ConditionalModule):
         self.__frame_buffer = []
         self.__buffer_length = 0
         self.__num_pframes = 0
-        dataset_configparser = ConfigParser.ConfigParser()
+        dataset_configparser = ConfigParser()
         dataset_configparser.read(os.path.join(dirname,'models/{}/config.cfg'.format(self.GetParameter("model"))))
         inp_defs = dict()
         for key in dataset_configparser.options('Input_Times'):
