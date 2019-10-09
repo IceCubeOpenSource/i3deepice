@@ -10,7 +10,10 @@ from helpers import *
 import numpy as np
 from icecube import icetray
 from I3Tray import I3Tray
-import ConfigParser
+try:
+    from configparser import ConfigParser
+except ImportError:
+    from ConfigParser import ConfigParser  # ver. < 3.0
 from collections import OrderedDict
 import time
 from icecube.dataclasses import I3MapStringDouble
