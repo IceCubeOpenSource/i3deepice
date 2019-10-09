@@ -23,6 +23,7 @@ from plotting import figsize, make_plot, plot_prediction
 from keras.backend.tensorflow_backend import set_session
 import tensorflow as tf
 import keras
+import importlib
 print('Using keras version {} from {}'.format(keras.__version__,
                                               keras.__path__))
 
@@ -88,7 +89,7 @@ class DeepLearningClassifier(icetray.I3ConditionalModule):
 
 
         print("Pulsemap {},  Store results under {}".format(self.__pulsemap,self.__save_as))
-        exec('import i3deepice.models.{}.model as func_model_def'.format(self.GetParameter("model")))
+        func_model_def = importlib.import_module('i3deepice.models.{}.model'.format(self.GetParameter("model")))
         self.__output_names = func_model_def.output_names
         self.__model = func_model_def.model(self.__inp_shapes, self.__out_shapes)
         config = tf.ConfigProto(intra_op_parallelism_threads=self.__n_cores,
