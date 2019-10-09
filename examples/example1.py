@@ -4,6 +4,7 @@ import sys
 import numpy as np
 import os
 #sys.path.append(os.environ['DNN_BASE'])
+sys.path.append('../')
 from i3deepice.i3module import DeepLearningClassifier
 import argparse
 

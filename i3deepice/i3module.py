@@ -85,7 +85,7 @@ class DeepLearningClassifier(icetray.I3ConditionalModule):
 
 
         print("Pulsemap {},  Store results under {}".format(self.__pulsemap,self.__save_as))
-        exec 'import models.{}.model as func_model_def'.format(self.GetParameter("model"))
+        exec('import models.{}.model as func_model_def'.format(self.GetParameter("model")))
         self.__output_names = func_model_def.output_names
         self.__model = func_model_def.model(self.__inp_shapes, self.__out_shapes)
         config = tf.ConfigProto(intra_op_parallelism_threads=self.__n_cores,
