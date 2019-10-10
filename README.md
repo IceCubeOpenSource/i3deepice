@@ -33,7 +33,6 @@ This includes:
 As mentioned above there is a singularity/docker container which has a working version of the libraries. The only thing that is needed in this cases are the Nvidia GPU drivers (see `https://www.tensorflow.org/install/docker` for reference). For an example of how the singularity command could look like consult the environment script in `./examples/singularity_env.sh`.
 
 Installing the container on IceCube's NPX is fairly simple with the following commands:
-
--`export SINGULARITY_CACHEDIR=/some/location/with/enough/quota`
--`export SINGULARITY_TEMPDIR=/another/location/with/enough/quota`
--`singularity pull docker://icecube/icetray:combo-stable-tensorflow.1.13.2-ubuntu18.04`
+  - `export SINGULARITY_CACHEDIR=/some/location/with/enough/quota`
+  - `export SINGULARITY_TEMPDIR=/another/location/with/enough/quota`
+  - `singularity pull docker://icecube/icetray:combo-stable-tensorflow.1.13.2-ubuntu18.04`
