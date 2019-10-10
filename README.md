@@ -17,7 +17,7 @@ All the functionality is then provided by the main script `i3module.py`. There a
 1. As a part of an icetray module by importing it, i.e. `from i3deepice.i3module import DeepLearningClassifier`
 2. Directly: `python i3module.py --files /path/to/some/i3/files.i3 `
 
-(Note that for the first case it's required that the location of the module is in your `PYTHONPATH` envivornment variable)
+(Note that for the first case it's required that the location of the module is in your `PYTHONPATH` environment variable)
 
 An example on how the tool can be used inside an icetray module is given in `./examples/`. In the same folder you also find an additional `README` with specific information of the usage with singularity on IceCube's NPX cluster
 
