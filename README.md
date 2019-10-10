@@ -34,6 +34,6 @@ As mentioned above there is a singularity/docker container which has a working v
 
 Installing the container on IceCube's NPX is fairly simple with the following commands:
 
-`export SINGULARITY_CACHEDIR=/some/location/with/enough/quota`
-`export SINGULARITY_TEMPDIR=/another/location/with/enough/quota`
-`singularity pull docker://icecube/icetray:combo-stable-tensorflow.1.13.2-ubuntu18.04`
+-`export SINGULARITY_CACHEDIR=/some/location/with/enough/quota`
+-`export SINGULARITY_TEMPDIR=/another/location/with/enough/quota`
+-`singularity pull docker://icecube/icetray:combo-stable-tensorflow.1.13.2-ubuntu18.04`
