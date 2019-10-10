@@ -6,11 +6,11 @@ How to execute the DNN classifier in the singularity container:
 2. Create a script that is setting up the environment and make sure that the path to the package is included in you PYTHONPATH
    (see singularity_env.sh as an example)
 (2.5. Make sure that you are on a machine with avx support and - if needed - have a gpu available)
-3. Run bash /path/to/singularity/envirnoment.sh /path/to/icetray/script.py [arguments]
+3. Run `bash /path/to/singularity/envirnoment.sh /path/to/icetray/script.py [arguments]`
 
 
 Example:
-bash /data/user/tglauch/DeepIceLearning/I3Module/examples/singularity_env.sh /data/user/tglauch/DeepIceLearning/I3Module/examples/example1.py --outfile /data/user/tglauch/test.npy --files /data/user/reimann/2017_07_25/diffuse_sample_for_ps/IC86_2012/processed/11029/11029_1.i3.bz2 --model mu_energy_reco_new
+bash /data/user/tglauch/i3deepice/examples/singularity_env.sh /data/user/tglauch/i3deepice/examples/example1.py --outfile /data/user/tglauch/test.npy --files /data/user/reimann/2017_07_25/diffuse_sample_for_ps/IC86_2012/processed/11029/11029_1.i3.bz2 --model mu_energy_reco_new
 
 
 Remark: Running on GPU machines
