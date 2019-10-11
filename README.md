@@ -34,6 +34,7 @@ As mentioned above there is, however, a singularity/docker container which has a
 
   - `export SINGULARITY_CACHEDIR=/data/user/your_name/cache`
   - `export SINGULARITY_TEMPDIR=/data/user/your_name/temp`
+  - `mkdir $SINGULARITY_CACHEDIR $SINGULARITY_TEMPDIR`
   - `singularity pull docker://icecube/icetray:combo-stable-tensorflow.1.13.2-ubuntu18.04`
  
  The only thing that is additionally required in this cases are the Nvidia GPU drivers (see `https://www.tensorflow.org/install/docker` for reference). For an example of how the singularity command could look like consult the environment script in `./examples/singularity_env.sh`.
