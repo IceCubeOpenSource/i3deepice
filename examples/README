@@ -10,7 +10,8 @@ How to execute the DNN classifier in the singularity container:
 
 
 Example:
-bash /data/user/tglauch/i3deepice/examples/singularity_env.sh /data/user/tglauch/i3deepice/examples/example1.py --outfile /data/user/tglauch/test.npy --files /data/user/reimann/2017_07_25/diffuse_sample_for_ps/IC86_2012/processed/11029/11029_1.i3.bz2 --model mu_energy_reco_new
+bash /data/user/tglauch/i3deepice/examples/singularity_env.sh /data/user/tglauch/i3deepice/examples/example1.py
+--outfile /data/user/tglauch/test.npy --files /data/user/reimann/2017_07_25/diffuse_sample_for_ps/IC86_2012/processed/11029/11029_1.i3.bz2
 
 
 Remark: Running on GPU machines
