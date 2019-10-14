@@ -10,7 +10,7 @@ The IceCube public repository provides a docker/singularity contrainer with all 
 
 # 1. Installation & Usage
 
-The package can be simply installed by running `python setup.py install`. As an alternative add the path to the tool's main folder to your `$PYTHONPATH`. 
+The package can be simply installed by running `python setup.py install`. As an alternative add the path to the tool's main folder to your `$PYTHONPATH` (this might especially the easier option if you work on Icecube's NPX cluster). 
 
 All the functionality is provided by the main script `i3module.py`. There are two ways of running the software after loading the icecube environment (and potential GPU libraries):
 
