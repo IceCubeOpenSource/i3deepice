@@ -40,7 +40,7 @@ class DeepLearningClassifier(icetray.I3ConditionalModule):
         self.AddParameter("save_as", "Define the Output key",
                           "Deep_Learning_Classification")
         self.AddParameter("batch_size", "Size of the batches", 40)
-        self.AddParameter("n_cores", "number of cores to be used", 4)
+        self.AddParameter("n_cores", "number of cores to be used", 1)
         self.AddParameter("remove_daq", "whether or not to remove Q-Frames", False)
         self.AddParameter("model", "which model to use", 'classification')
 
