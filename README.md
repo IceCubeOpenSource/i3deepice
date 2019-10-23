@@ -39,4 +39,4 @@ As mentioned above there is, however, a singularity/docker container which has a
   singularity pull docker://icecube/icetray:combo-stable-tensorflow.1.13.2-ubuntu18.04
   ```
  
- The only thing that is additionally required in this cases are the Nvidia GPU drivers (see `https://www.tensorflow.org/install/docker` for reference). For an example on how to run a script in the singularity container consult the environment script in `./examples/singularity_env.sh`. Before running everything make sure you have a clean environment, i.e. no previously loaded icecube software environment in your `$PATH`
+For an example on how to run a script in a singularity container consult the environment script in `./examples/singularity_env.sh`. Before running the container make sure you have a clean environment, i.e. no previously loaded icecube software environment in your `$PATH`
