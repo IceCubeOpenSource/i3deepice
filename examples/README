@@ -4,7 +4,7 @@ How to execute the DNN classifier in the singularity container:
    run into quota problems set SINGULARITY_CACHEDIR and SINGULARITY_TEMPDIR to a location where enough space is
    available  (/data/user/your_name/temp and /data/user/your_name/cache for example)
 2. Create a script that is setting up the environment and make sure that the path to the package is included in you PYTHONPATH
-   (see singularity_env.sh as an example)
+   when loading the module (either over `sys.path.append(/path/to/module/)` or adding directly to PYTHONPATH)
 (2.5. Make sure that you are on a machine with avx support and - if needed - have a gpu available)
 3. Run `bash /path/to/singularity/envirnoment.sh /path/to/icetray/script.py [arguments]`
 
@@ -16,6 +16,6 @@ bash /data/user/tglauch/i3deepice/examples/singularity_env.sh /data/user/tglauch
 
 Remark: Running on GPU machines
 For running the script on GPU machines make sure that both - AVX support and CUDA - are available on the machine.
-See gpu_job.sub for an example of how to set the condor variables correctly. For testing it is wise to use and interactive GPU by
+See gpu_job.sub for an example of how to set the condor variables correctly. For testing purposes it is recommended to use and interactive GPU by
 running condor_submit -interactive gpu_job.sub
 
