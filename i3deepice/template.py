@@ -80,7 +80,7 @@ class DeepLearningClassifier(icetray.I3ConditionalModule):
             # Implement the single event processing here
 
         # Do the Prediction
-        predictions = self.__model.predict() # or something similar
+        predictions = self.__model.predict(you_processed_frames, *args, **kwargs) # or something similar
 
         # Store the Results to the Frame
         i = 0
