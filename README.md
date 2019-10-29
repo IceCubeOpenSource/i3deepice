@@ -42,7 +42,7 @@ As mentioned above there is, however, a singularity/docker container which has a
 For an example on how to run a script in a singularity container consult the environment script in `./examples/singularity_env.sh`. Before running the container make sure you have a clean environment, i.e. no previously loaded icecube software environment in your `$PATH`
 
 
-# 3 Integrating into IceTray
+# 3 Integration into IceTray
 
 Using the module is fairly simple. Just import it and add it to the IceTray as usual.
 
