@@ -121,6 +121,8 @@ class DeepLearningModule(icetray.I3ConditionalModule):
             t0 = get_t0(frame, puls_key=pulse_key)
             if isinstance(frame[pulse_key], dataclasses.I3RecoPulseSeriesMapMask):
                 pulses = frame[pulse_key].apply(frame)
+            else:
+                pulses = frame[puls_key]
             for key in self.__inp_shapes.keys():
                 f_slice.append(np.zeros(self.__inp_shapes[key]['general']))
             for omkey in pulses.keys():

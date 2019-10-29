@@ -6,6 +6,8 @@ def get_t0(frame, puls_key='InIceDSTPulses'):
     pulses = frame[puls_key]
     if isinstance(frame[puls_key], dataclasses.I3RecoPulseSeriesMapMask):
         pul = pulses.apply(frame)
+    else:
+        pul = frame[puls_key]
     time = []
     charge = []
     for i in pul:
