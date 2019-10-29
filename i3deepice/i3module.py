@@ -231,7 +231,7 @@ if __name__ == "__main__":
     tray = I3Tray()
     tray.AddModule('I3Reader','reader',
                    FilenameList = files)
-    tray.AddModule(DeepLearningClassifier, "DeepLearningClassifier",
+    tray.AddModule(DeepLearningModule, "DeepLearningMod",
                    pulsemap=args.pulsemap,
                    batch_size=args.batch_size,
                    cpu_cores=args.cpu_cores,

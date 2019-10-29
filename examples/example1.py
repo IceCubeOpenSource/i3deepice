@@ -5,7 +5,7 @@ import numpy as np
 import os
 #sys.path.append(os.environ['DNN_BASE'])
 sys.path.append('../')
-from i3deepice.i3module import DeepLearningClassifier
+from i3deepice.i3module import DeepLearningModule
 import argparse
 
 def print_info(phy_frame):
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     tray = I3Tray()
     tray.AddModule('I3Reader','reader',
                    FilenameList = files)
-    tray.AddModule(DeepLearningClassifier, "DeepLearningClassifier",
+    tray.AddModule(DeepLearningModule, "DeepLearningMod",
                    pulsemap=args.pulsemap,
                    batch_size=args.batch_size,
                    n_cores=args.n_cores,
