@@ -14,7 +14,7 @@ The package can be simply installed by running `python setup.py install`. As an 
 
 All the functionality is provided by the main script `i3module.py`. There are two ways of running the software after loading the icecube environment (and potential GPU libraries):
 
-1. As a part of an icetray module by importing it as `from i3deepice.i3module import DeepLearningClassifier`
+1. As a part of an icetray module by importing it as `from i3deepice.i3module import DeepLearningModule`
 2. Directly: `python i3module.py --files /path/to/some/i3/files.i3 `
 
 (Note that for the first case it's required that the location of the module is in your `PYTHONPATH` environment variable)
