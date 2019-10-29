@@ -1,5 +1,6 @@
 import numpy as np
 import scipy.stats as st
+from icecube import dataclasses
 
 def get_t0(frame, puls_key='InIceDSTPulses'):
     pulses = frame[puls_key]
