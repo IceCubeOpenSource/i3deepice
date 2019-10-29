@@ -61,7 +61,7 @@ Currenly there are two models available.
 
   - `classification` predicts the event topology of the event, i.e. one of skimming, starting cascade, through-going track, starting track or stopping track
   
-  - `mu_energy_reco_full_range` predicts the muon energy on detector entry for up-going muons
+  - `mu_energy_reco_full_range` predicts the log_10 of the energy on detector entry for up-going muons
   
   
 The pulsemap should be chosen in accordance with the respective task. In general prediction is more accurate on single events, i.e. splitted pulsemaps, but there is a certain stabillity also against coincidences.
