@@ -3,7 +3,8 @@ import scipy.stats as st
 
 def get_t0(frame, puls_key='InIceDSTPulses'):
     pulses = frame[puls_key]
-    pul = pulses.apply(frame)
+    if isinstance(frame[puls_key], dataclasses.I3RecoPulseSeriesMapMask):
+        pul = pulses.apply(frame)
     time = []
     charge = []
     for i in pul:
