@@ -27,7 +27,7 @@ import importlib
 print('Using keras version {} from {}'.format(keras.__version__,
                                               keras.__path__))
 
-class DeepLearningClassifier(icetray.I3ConditionalModule):
+class DeepLearningModule(icetray.I3ConditionalModule):
     """IceTray compatible class of the  Deep Learning Classifier
     """
 
@@ -40,7 +40,8 @@ class DeepLearningClassifier(icetray.I3ConditionalModule):
         self.AddParameter("save_as", "Define the Output key",
                           "Deep_Learning_Classification")
         self.AddParameter("batch_size", "Size of the batches", 40)
-        self.AddParameter("n_cores", "number of cores to be used", 1)
+        self.AddParameter("cpu_cores", "number of cores to be used", 1)
+        self.AddParameter("gpu_cores", "number of gpu to be used", 1)        
         self.AddParameter("remove_daq", "whether or not to remove Q-Frames", False)
         self.AddParameter("model", "which model to use", 'classification')
 
@@ -60,7 +61,8 @@ class DeepLearningClassifier(icetray.I3ConditionalModule):
         self.__pulsemap = self.GetParameter("pulsemap")
         self.__save_as =  self.GetParameter("save_as")
         self.__batch_size =  self.GetParameter("batch_size")
-        self.__n_cores =  self.GetParameter("n_cores")
+        self.__cpu_cores =  self.GetParameter("cpu_cores")
+        self.__gpu_cores =  self.GetParameter("gpu_cores")        
         self.__remove_daq = self.GetParameter("remove_daq")
         self.__frame_buffer = []
         self.__buffer_length = 0
@@ -92,10 +94,10 @@ class DeepLearningClassifier(icetray.I3ConditionalModule):
         func_model_def = importlib.import_module('i3deepice.models.{}.model'.format(self.GetParameter("model")))
         self.__output_names = func_model_def.output_names
         self.__model = func_model_def.model(self.__inp_shapes, self.__out_shapes)
-        config = tf.ConfigProto(intra_op_parallelism_threads=self.__n_cores,
-                                inter_op_parallelism_threads=self.__n_cores,
-                                device_count = {'GPU': 1 , 'CPU': 1},
-                                log_device_placement=False)
+        config = tf.ConfigProto(intra_op_parallelism_threads=self.__cpu_cores,
+                                inter_op_parallelism_threads=self.__cpu_cores,
+                                device_count = {'GPU': self.__gpu_cores , 'CPU': self.__cpu_cores},
+                                log_device_placement=False)        
         sess = tf.Session(config=config)
         set_session(sess)
         self.__model.load_weights(os.path.join(dirname, 'models/{}/weights.npy'.format(self.GetParameter("model"))))
@@ -204,7 +206,9 @@ def parseArguments():
     parser.add_argument(
         "--batch_size", type=int, default=40)
     parser.add_argument(
-        "--n_cores", type=int, default=4)
+        "--cpu_cores", type=int, default=1)
+    parser.add_argument(
+        "--gpu_cores", type=int, default=1)    
     parser.add_argument(
         "--remove_daq", action='store_true', default=False)
     parser.add_argument(
@@ -230,7 +234,8 @@ if __name__ == "__main__":
     tray.AddModule(DeepLearningClassifier, "DeepLearningClassifier",
                    pulsemap=args.pulsemap,
                    batch_size=args.batch_size,
-                   n_cores=args.n_cores,
+                   cpu_cores=args.cpu_cores,
+                   gpu_cores=args.gpu_cores,                   
                    remove_daq=args.remove_daq,
                    model=args.model)
     tray.AddModule(print_info, 'printer',
