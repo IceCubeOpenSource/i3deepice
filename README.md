@@ -40,3 +40,28 @@ As mentioned above there is, however, a singularity/docker container which has a
   ```
  
 For an example on how to run a script in a singularity container consult the environment script in `./examples/singularity_env.sh`. Before running the container make sure you have a clean environment, i.e. no previously loaded icecube software environment in your `$PATH`
+
+
+# 3 Integrating into IceTray
+
+Using the module is fairly simple. Just import it and add it to the IceTray as usual.
+
+```
+from i3deepice.i3module import DeepLearningModule
+tray.AddModule(DeepLearningModule, 'dl_energy',
+                batch_size=128,
+                cpu_cores=1,
+                gpu_cores=1,
+                model='mu_energy_reco_full_range',
+                pulsemap='HVInIcePulses',
+                save_as='dnn_reco')
+```
+
+Currenly there are two models available.
+
+  - `classification` predicts the event topology of the event, i.e. one of skimming, starting cascade, through-going track, starting track or stopping track
+  
+  - `mu_energy_reco_full_range` predicts the muon energy on detector entry for up-going muons
+  
+  
+The pulsemap should be chosen in accordance with the respective task. In general prediction is more accurate on single events, i.e. splitted pulsemaps, but there is a certain stabillity also against coincidences.
