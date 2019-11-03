@@ -41,7 +41,7 @@ class DeepLearningModule(icetray.I3ConditionalModule):
                           "Deep_Learning_Classification")
         self.AddParameter("batch_size", "Size of the batches", 40)
         self.AddParameter("cpu_cores", "number of cores to be used", 1)
-        self.AddParameter("gpu_cores", "number of gpu to be used", 1)        
+        self.AddParameter("gpu_cores", "number of gpu to be used", 1)
         self.AddParameter("remove_daq", "whether or not to remove Q-Frames", False)
         self.AddParameter("model", "which model to use", 'classification')
 
@@ -62,7 +62,7 @@ class DeepLearningModule(icetray.I3ConditionalModule):
         self.__save_as =  self.GetParameter("save_as")
         self.__batch_size =  self.GetParameter("batch_size")
         self.__cpu_cores =  self.GetParameter("cpu_cores")
-        self.__gpu_cores =  self.GetParameter("gpu_cores")        
+        self.__gpu_cores =  self.GetParameter("gpu_cores")
         self.__remove_daq = self.GetParameter("remove_daq")
         self.__frame_buffer = []
         self.__buffer_length = 0
@@ -97,7 +97,7 @@ class DeepLearningModule(icetray.I3ConditionalModule):
         config = tf.ConfigProto(intra_op_parallelism_threads=self.__cpu_cores,
                                 inter_op_parallelism_threads=self.__cpu_cores,
                                 device_count = {'GPU': self.__gpu_cores , 'CPU': self.__cpu_cores},
-                                log_device_placement=False)        
+                                log_device_placement=False)
         sess = tf.Session(config=config)
         set_session(sess)
         self.__model.load_weights(os.path.join(dirname, 'models/{}/weights.npy'.format(self.GetParameter("model"))))
@@ -116,7 +116,7 @@ class DeepLearningModule(icetray.I3ConditionalModule):
             pulse_key = self.__pulsemap
             if pulse_key not in frame.keys():
                 print('No Pulsemap called {}..continue without prediction'.format(pulse_key))
-                return
+                continue
             f_slice = []
             t0 = get_t0(frame, puls_key=pulse_key)
             if isinstance(frame[pulse_key], dataclasses.I3RecoPulseSeriesMapMask):
@@ -146,6 +146,8 @@ class DeepLearningModule(icetray.I3ConditionalModule):
         for frame in frames:
             if frame.Stop != icetray.I3Frame.Physics:
                 continue
+            if pulse_key not in frame.keys():
+                continue
             output = I3MapStringDouble()
             prediction = np.concatenate(np.atleast_2d(predictions[i]))
             for j in range(len(prediction)):
@@ -156,6 +158,14 @@ class DeepLearningModule(icetray.I3ConditionalModule):
         print('Total Time {:.2f}s [{:.2f}s], Processing Time {:.2f}s [{:.2f}s], Prediction Time {:.3f}s [{:.3f}s]'.format(
                 tot_time, tot_time/i, processing_time, processing_time/i,
                 prediction_time, prediction_time/i))
+        return
+
+    def Process(self):
+        frame = self.PopFrame()
+        if frame.Stop == icetray.I3Frame.Physics:
+            self.Physics(frame)
+        else:
+            self.DAQ(frame)
         return
 
     def Physics(self, frame):
@@ -190,10 +200,11 @@ class DeepLearningModule(icetray.I3ConditionalModule):
         return
 
 
-def print_info(phy_frame):
+def print_info(phy_frame, key="Deep_Learning_Classification"):
     print('Run_ID {} Event_ID {}'.format(phy_frame['I3EventHeader'].run_id,
                                          phy_frame['I3EventHeader'].event_id))
-    print(phy_frame["Deep_Learning_Classification"])
+    if key in phy_frame.keys():
+        print(phy_frame[key])
     return
 
 
@@ -211,7 +222,7 @@ def parseArguments():
     parser.add_argument(
         "--cpu_cores", type=int, default=1)
     parser.add_argument(
-        "--gpu_cores", type=int, default=1)    
+        "--gpu_cores", type=int, default=1)
     parser.add_argument(
         "--remove_daq", action='store_true', default=False)
     parser.add_argument(
@@ -238,7 +249,7 @@ if __name__ == "__main__":
                    pulsemap=args.pulsemap,
                    batch_size=args.batch_size,
                    cpu_cores=args.cpu_cores,
-                   gpu_cores=args.gpu_cores,                   
+                   gpu_cores=args.gpu_cores,
                    remove_daq=args.remove_daq,
                    model=args.model)
     tray.AddModule(print_info, 'printer',
@@ -248,5 +259,5 @@ if __name__ == "__main__":
     if args.plot:
         tray.AddModule(make_plot, 'plotter',
                        Streams=[icetray.I3Frame.Physics])
-    tray.Execute()
+    tray.Execute(50)
     tray.Finish()
