@@ -52,8 +52,8 @@ tray.AddModule(DeepLearningModule, 'dl_energy',
                 batch_size=128,
                 cpu_cores=1,
                 gpu_cores=1,
-                model='mu_energy_reco_full_range',
-                pulsemap='HVInIcePulses',
+                model='classification',
+                pulsemap='InIceDSTPulses',
                 save_as='dnn_reco')
 ```
 
