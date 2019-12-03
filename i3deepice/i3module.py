@@ -94,10 +94,11 @@ class DeepLearningModule(icetray.I3ConditionalModule):
         func_model_def = importlib.import_module('i3deepice.models.{}.model'.format(self.GetParameter("model")))
         self.__output_names = func_model_def.output_names
         self.__model = func_model_def.model(self.__inp_shapes, self.__out_shapes)
-        config = tf.ConfigProto(intra_op_parallelism_threads=self.__cpu_cores,
-                                inter_op_parallelism_threads=self.__cpu_cores,
-                                device_count = {'GPU': self.__gpu_cores , 'CPU': self.__cpu_cores},
-                                log_device_placement=False)
+        config = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=self.__cpu_cores,
+                                          inter_op_parallelism_threads=self.__cpu_cores,
+                                          device_count = {'GPU': self.__gpu_cores ,
+                                                          'CPU': self.__cpu_cores},
+                                          log_device_placement=False)
         sess = tf.Session(config=config)
         set_session(sess)
         self.__model.load_weights(os.path.join(dirname, 'models/{}/weights.npy'.format(self.GetParameter("model"))))
