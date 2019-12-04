@@ -19,7 +19,6 @@ import time
 from icecube.dataclasses import I3MapStringDouble
 from icecube import dataclasses, dataio
 import argparse
-from plotting import figsize, make_plot, plot_prediction
 from keras.backend.tensorflow_backend import set_session
 import tensorflow as tf
 import keras
@@ -236,6 +235,8 @@ def parseArguments():
 
 if __name__ == "__main__":
     args = parseArguments()
+    if args.plot:
+        from plotting import figsize, make_plot, plot_prediction
     files = []
     for j in np.atleast_1d(args.files):
         if os.path.isdir(j):
