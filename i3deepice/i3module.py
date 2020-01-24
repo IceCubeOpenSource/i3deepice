@@ -26,29 +26,37 @@ import importlib
 print('Using keras version {} from {}'.format(keras.__version__,
                                               keras.__path__))
 
+
 class DeepLearningModule(icetray.I3ConditionalModule):
     """IceTray compatible class of the  Deep Learning Classifier
     """
 
-    def __init__(self,context):
+    def __init__(self, context):
         """Initialize the Class
         """
         icetray.I3ConditionalModule.__init__(self, context)
-        self.AddParameter("pulsemap","Define the name of the pulsemap",
+        self.AddParameter("pulsemap", "Define the name of the pulsemap",
                           "InIceDSTPulses")
         self.AddParameter("save_as", "Define the Output key",
                           "Deep_Learning_Classification")
         self.AddParameter("batch_size", "Size of the batches", 40)
         self.AddParameter("cpu_cores", "number of cores to be used", 1)
         self.AddParameter("gpu_cores", "number of gpu to be used", 1)
-        self.AddParameter("remove_daq", "whether or not to remove Q-Frames", False)
+        self.AddParameter("remove_daq", "whether or not to remove Q-Frames",
+                          False)
+        self.AddParameter("calib_errata", "Key for Calibration Errata", 'None')
+        self.AddParameter("bad_dom_list", "Key for Bad Doms", 'None')
+        self.AddParameter("saturation_windows", "Key for Saturation Windows?",
+                          'None')
+        self.AddParameter("bright_doms", "Key for Bright DOMs", 'None')
         self.AddParameter("model", "which model to use", 'classification')
 
     def Configure(self):
-        """Read the network architecture and input, output information from config files
+        """Read the network architecture, input & output information from config files
         """
 
-        print('Initialize the Deep Learning classifier..this may take a few seconds')
+        print('Initialize the Deep Learning classifier..\
+               this may take a few seconds')
         self.__runinfo = np.load(os.path.join(dirname,'models/{}/run_info.npy'.format(self.GetParameter("model"))),
                                  allow_pickle=True)[()]
         self.__grid = np.load(os.path.join(dirname, 'lib/grid.npy'),
@@ -58,11 +66,15 @@ class DeepLearningModule(icetray.I3ConditionalModule):
         self.__inp_trans = self.__runinfo['inp_trans']
         self.__out_trans = self.__runinfo['out_trans']
         self.__pulsemap = self.GetParameter("pulsemap")
-        self.__save_as =  self.GetParameter("save_as")
-        self.__batch_size =  self.GetParameter("batch_size")
-        self.__cpu_cores =  self.GetParameter("cpu_cores")
-        self.__gpu_cores =  self.GetParameter("gpu_cores")
+        self.__save_as = self.GetParameter("save_as")
+        self.__batch_size = self.GetParameter("batch_size")
+        self.__cpu_cores = self.GetParameter("cpu_cores")
+        self.__gpu_cores = self.GetParameter("gpu_cores")
         self.__remove_daq = self.GetParameter("remove_daq")
+        self.__calib_err_key = self.GetParameter("calib_errata")
+        self.__bad_dom_key = self.GetParameter("bad_dom_list")
+        self.__sat_window_key = self.GetParameter("saturation_windows")
+        self.__bright_doms_key = self.GetParameter("bright_doms")
         self.__frame_buffer = []
         self.__buffer_length = 0
         self.__num_pframes = 0
@@ -83,28 +95,70 @@ class DeepLearningModule(icetray.I3ConditionalModule):
                 elif 'charge_quantile' in bkey:
                     feature = 'pulses_quantiles(charges, times, {})'.format(float('0.' + bkey.split('_')[3]))
                 else:
-                    feature = inp_defs[bkey.replace('IC_','')]
+                    feature = inp_defs[bkey.replace('IC_', '')]
                 trans = self.__inp_trans[key][bkey]
                 binput.append((feature, trans))
             self.__inputs.append(binput)
 
 
-        print("Pulsemap {},  Store results under {}".format(self.__pulsemap,self.__save_as))
+        print("Pulsemap {},  Store results under {}".format(self.__pulsemap, self.__save_as))
         func_model_def = importlib.import_module('i3deepice.models.{}.model'.format(self.GetParameter("model")))
         self.__output_names = func_model_def.output_names
-        self.__model = func_model_def.model(self.__inp_shapes, self.__out_shapes)
+        self.__model = func_model_def.model(self.__inp_shapes,
+                                            self.__out_shapes)
         config = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=self.__cpu_cores,
                                           inter_op_parallelism_threads=self.__cpu_cores,
-                                          device_count = {'GPU': self.__gpu_cores ,
-                                                          'CPU': self.__cpu_cores},
+                                          device_count={'GPU': self.__gpu_cores ,
+                                                        'CPU': self.__cpu_cores},
                                           log_device_placement=False)
         sess = tf.Session(config=config)
         set_session(sess)
         self.__model.load_weights(os.path.join(dirname, 'models/{}/weights.npy'.format(self.GetParameter("model"))))
 
+    def get_cleaned_pulses(self, frame, pulse_key):
+        if isinstance(frame[pulse_key],
+                      dataclasses.I3RecoPulseSeriesMapMask):
+            pulses = frame[pulse_key].apply(frame)
+        else:
+            pulses = frame[pulse_key]
+        if (self.__calib_err_key == '') & (self.__bad_dom_key == '') &\
+           (self.__sat_window_key == '') & (self.__bright_doms_key == ''):
+            return pulses
+        else:
+            if self.__bright_doms_key in frame.keys():
+                for bright_dom in frame[self.__bright_doms_key]:
+                    if bright_dom in pulses.keys():
+                        pulses.pop(bright_dom)
+            if self.__bad_dom_key in frame.keys():
+                for bad_dom in frame[self.__bad_dom_key]:
+                    if bad_dom in pulses.keys():
+                        pulses.pop(bad_dom)
+            if self.__calib_err_key in frame.keys():
+                for errata in frame[self.__calib_err_key]:
+                    if errata.key() not in pulses.keys():
+                        continue
+                    single_dom_pulses = pulses[errata.key()]
+                    for it_errata in errata.data():
+                        for spulse in single_dom_pulses:
+                            if (spulse.time > it_errata.start) &\
+                               (spulse.time < it_errata.stop):
+                                spulse.charge = 0
+            if self.__sat_window_key in frame.keys():
+                for errata in frame[self.__sat_window_key]:
+                    if errata.key() not in pulses.keys():
+                        continue
+                    single_dom_pulses = pulses[errata.key()]
+                    for it_errata in errata.data():
+                        for spulse in single_dom_pulses:
+                            if (spulse.time > it_errata.start) &\
+                               (spulse.time < it_errata.stop):
+                                print('deleted')
+                                spulse.charge = 0
+            return pulses
 
     def BatchProcessBuffer(self, frames):
-        """Batch Process a list of frames. This includes pre-processing, prediction and storage of the results
+        """Batch Process a list of frames.
+        This includes pre-processing, prediction and storage of the results
         """
         timer_t0 = time.time()
         f_slices = []
@@ -118,27 +172,30 @@ class DeepLearningModule(icetray.I3ConditionalModule):
                 print('No Pulsemap called {}..continue without prediction'.format(pulse_key))
                 continue
             f_slice = []
-            t0 = get_t0(frame, puls_key=pulse_key)
-            if isinstance(frame[pulse_key], dataclasses.I3RecoPulseSeriesMapMask):
-                pulses = frame[pulse_key].apply(frame)
-            else:
-                pulses = frame[pulse_key]
+            pulses = self.get_cleaned_pulses(frame, pulse_key)
+            t0 = get_t0(pulses)
             for key in self.__inp_shapes.keys():
                 f_slice.append(np.zeros(self.__inp_shapes[key]['general']))
             for omkey in pulses.keys():
                 dom = (omkey.string, omkey.om)
-                if not dom in self.__grid.keys():
+                if dom not in self.__grid.keys():
                     continue
                 gpos = self.__grid[dom]
-                charges = np.array([p.charge for p in pulses[omkey][:]])
-                times = np.array([p.time for p in pulses[omkey][:]]) - t0
-                widths = np.array([p.width for p in pulses[omkey][:]])
+                charges = np.array([p.charge for p in pulses[omkey][:]
+                                    if p.charge > 0])
+                times = np.array([p.time for p in pulses[omkey][:]
+                                  if p.charge > 0]) - t0
+                widths = np.array([p.width for p in pulses[omkey][:]
+                                   if p.charge > 0])
                 for branch_c, inp_branch in enumerate(self.__inputs):
                     for inp_c, inp in enumerate(inp_branch):
-                        f_slice[branch_c][gpos[0]][gpos[1]][gpos[2]][inp_c] = inp[1](eval(inp[0]))
+                        f_slice[branch_c][gpos[0]][gpos[1]][gpos[2]][inp_c] =\
+                            inp[1](eval(inp[0]))
             processing_time = time.time() - timer_t0
             f_slices.append(f_slice)
-        predictions = self.__model.predict(np.array(np.squeeze(f_slices, axis=1), ndmin=5),
+        predictions = self.__model.predict(np.array(np.squeeze(f_slices,
+                                                               axis=1),
+                                                    ndmin=5),
                                            batch_size=self.__batch_size,
                                            verbose=0, steps=None)
         prediction_time = time.time() - processing_time - timer_t0
@@ -156,8 +213,8 @@ class DeepLearningModule(icetray.I3ConditionalModule):
             i += 1
         tot_time = time.time() - timer_t0
         print('Total Time {:.2f}s [{:.2f}s], Processing Time {:.2f}s [{:.2f}s], Prediction Time {:.3f}s [{:.3f}s]'.format(
-                tot_time, tot_time/i, processing_time, processing_time/i,
-                prediction_time, prediction_time/i))
+                tot_time, tot_time / i, processing_time, processing_time / i,
+                prediction_time, prediction_time / i))
         return
 
     def Process(self):
@@ -183,7 +240,7 @@ class DeepLearningModule(icetray.I3ConditionalModule):
             self.__num_pframes = 0
         return
 
-    def DAQ(self,frame):
+    def DAQ(self, frame):
         """ Handel Q-Frames. Append to buffer if they should be kept
         """
         if not self.__remove_daq:
@@ -228,7 +285,7 @@ def parseArguments():
     parser.add_argument(
         "--model", type=str, default='classification')
     parser.add_argument(
-        "--outfile", type=str, default="~/myhdf.i3.bz2")
+        "--outfile", type=str, default='None')
     args = parser.parse_args()
     return args
 
@@ -236,30 +293,36 @@ def parseArguments():
 if __name__ == "__main__":
     args = parseArguments()
     if args.plot:
-        from plotting import figsize, make_plot, plot_prediction
+        from plotting import make_plot
     files = []
     for j in np.atleast_1d(args.files):
         if os.path.isdir(j):
-            files.extend([os.path.join(j,i) for i in os.listdir(j) if '.i3' in i])
+            files.extend([os.path.join(j, i)
+                          for i in os.listdir(j) if '.i3' in i])
         else:
             files.append(j)
     files = sorted(files)
     tray = I3Tray()
-    tray.AddModule('I3Reader','reader',
-                   FilenameList = files)
+    tray.AddModule('I3Reader', 'reader',
+                   FilenameList=files)
     tray.AddModule(DeepLearningModule, "DeepLearningMod",
                    pulsemap=args.pulsemap,
                    batch_size=args.batch_size,
                    cpu_cores=args.cpu_cores,
                    gpu_cores=args.gpu_cores,
                    remove_daq=args.remove_daq,
-                   model=args.model)
+                   calib_errata='CalibrationErrata',
+                   bad_dom_list='BadDomsList',
+                   saturation_windows='SaturationWindows',
+                   bright_doms='BrightDOMs',
+                   model=args.model,)
     tray.AddModule(print_info, 'printer',
                    Streams=[icetray.I3Frame.Physics])
-    tray.AddModule("I3Writer", 'writer',
-                   Filename=args.outfile)
+    if args.outfile != 'None':
+        tray.AddModule("I3Writer", 'writer',
+                       Filename=args.outfile)
     if args.plot:
         tray.AddModule(make_plot, 'plotter',
                        Streams=[icetray.I3Frame.Physics])
-    tray.Execute(50)
+    tray.Execute()
     tray.Finish()
