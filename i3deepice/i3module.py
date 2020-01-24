@@ -121,40 +121,35 @@ class DeepLearningModule(icetray.I3ConditionalModule):
             pulses = frame[pulse_key].apply(frame)
         else:
             pulses = frame[pulse_key]
-        if (self.__calib_err_key == '') & (self.__bad_dom_key == '') &\
-           (self.__sat_window_key == '') & (self.__bright_doms_key == ''):
-            return pulses
-        else:
-            if self.__bright_doms_key in frame.keys():
-                for bright_dom in frame[self.__bright_doms_key]:
-                    if bright_dom in pulses.keys():
-                        pulses.pop(bright_dom)
-            if self.__bad_dom_key in frame.keys():
-                for bad_dom in frame[self.__bad_dom_key]:
-                    if bad_dom in pulses.keys():
-                        pulses.pop(bad_dom)
-            if self.__calib_err_key in frame.keys():
-                for errata in frame[self.__calib_err_key]:
-                    if errata.key() not in pulses.keys():
-                        continue
-                    single_dom_pulses = pulses[errata.key()]
-                    for it_errata in errata.data():
-                        for spulse in single_dom_pulses:
-                            if (spulse.time > it_errata.start) &\
-                               (spulse.time < it_errata.stop):
-                                spulse.charge = 0
-            if self.__sat_window_key in frame.keys():
-                for errata in frame[self.__sat_window_key]:
-                    if errata.key() not in pulses.keys():
-                        continue
-                    single_dom_pulses = pulses[errata.key()]
-                    for it_errata in errata.data():
-                        for spulse in single_dom_pulses:
-                            if (spulse.time > it_errata.start) &\
-                               (spulse.time < it_errata.stop):
-                                print('deleted')
-                                spulse.charge = 0
-            return pulses
+        if self.__bright_doms_key in frame.keys():
+            for bright_dom in frame[self.__bright_doms_key]:
+                if bright_dom in pulses.keys():
+                    pulses.pop(bright_dom)
+        if self.__bad_dom_key in frame.keys():
+            for bad_dom in frame[self.__bad_dom_key]:
+                if bad_dom in pulses.keys():
+                    pulses.pop(bad_dom)
+        if self.__calib_err_key in frame.keys():
+            for errata in frame[self.__calib_err_key]:
+                if errata.key() not in pulses.keys():
+                    continue
+                single_dom_pulses = pulses[errata.key()]
+                for it_errata in errata.data():
+                    for spulse in single_dom_pulses:
+                        if (spulse.time > it_errata.start) &\
+                           (spulse.time < it_errata.stop):
+                            spulse.charge = 0
+        if self.__sat_window_key in frame.keys():
+            for errata in frame[self.__sat_window_key]:
+                if errata.key() not in pulses.keys():
+                    continue
+                single_dom_pulses = pulses[errata.key()]
+                for it_errata in errata.data():
+                    for spulse in single_dom_pulses:
+                        if (spulse.time > it_errata.start) &\
+                           (spulse.time < it_errata.stop):
+                            spulse.charge = 0
+        return pulses
 
     def BatchProcessBuffer(self, frames):
         """Batch Process a list of frames.
