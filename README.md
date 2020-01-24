@@ -44,11 +44,11 @@ For an example on how to run a script in a singularity container consult the env
 
 # 3 Integration into IceTray
 
-Using the module is fairly simple. Just import it and add it to the IceTray as usual.
+Using the module is fairly simple. Just import it and add it to the IceTray as usual. By setting calib_errata, bad_dom_list, saturation_windows, bright_doms keys for pulse cleaning are defined. If not needed simply remove or set to 'None'.
 
 ```
 from i3deepice.i3module import DeepLearningModule
-tray.AddModule(DeepLearningModule, 'dl_energy',
+tray.AddModule(DeepLearningModule, 'dnn_classification',
                 batch_size=128,
                 cpu_cores=1,
                 gpu_cores=1,
