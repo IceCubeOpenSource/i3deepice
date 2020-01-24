@@ -54,6 +54,10 @@ tray.AddModule(DeepLearningModule, 'dl_energy',
                 gpu_cores=1,
                 model='classification',
                 pulsemap='InIceDSTPulses',
+                calib_errata='CalibrationErrata',
+                bad_dom_list='BadDomsList',
+                saturation_windows='SaturationWindows',
+                bright_doms='BrightDOMs',
                 save_as='dnn_reco')
 ```
 
