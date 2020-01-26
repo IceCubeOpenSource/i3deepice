@@ -58,7 +58,7 @@ tray.AddModule(DeepLearningModule, 'dnn_classification',
                 bad_dom_list='BadDomsList',
                 saturation_windows='SaturationWindows',
                 bright_doms='BrightDOMs',
-                save_as='dnn_reco')
+                save_as='TUM_classification')
 ```
 
 Currenly there are two models available.
