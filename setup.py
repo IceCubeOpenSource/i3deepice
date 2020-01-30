@@ -32,7 +32,8 @@ setuptools.setup(
     python_requires=">=2.7",
     install_requires=[
         'tensorflow>=1.5,<2.0',
-        'numpy>1.14'],
+        'numpy>1.14',
+        'scipy>1.2.0'],
     packages = setuptools.find_packages(),
     package_data={"i3deepice": ["models/*/*.npy",
                                 "models/*/*.cfg",
