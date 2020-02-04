@@ -19,9 +19,8 @@ import time
 from icecube.dataclasses import I3MapStringDouble
 from icecube import dataclasses, dataio
 import argparse
-from keras.backend.tensorflow_backend import set_session
 import tensorflow as tf
-import keras
+import tensorflow.keras as keras
 import importlib
 print('Using keras version {} from {}'.format(keras.__version__,
                                               keras.__path__))
@@ -111,8 +110,8 @@ class DeepLearningModule(icetray.I3ConditionalModule):
                                           device_count={'GPU': self.__gpu_cores ,
                                                         'CPU': self.__cpu_cores},
                                           log_device_placement=False)
-        sess = tf.Session(config=config)
-        set_session(sess)
+        sess = tf.compat.v1.Session(config=config)
+        tf.compat.v1.keras.backend.set_session(sess)
         self.__model.load_weights(os.path.join(dirname, 'models/{}/weights.npy'.format(self.GetParameter("model"))))
 
     def get_cleaned_pulses(self, frame, pulse_key):
