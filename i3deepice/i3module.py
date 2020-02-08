@@ -49,6 +49,7 @@ class DeepLearningModule(icetray.I3ConditionalModule):
                           'None')
         self.AddParameter("bright_doms", "Key for Bright DOMs", 'None')
         self.AddParameter("model", "which model to use", 'classification')
+        self.AddParameter("benchmark", "store benchmark results?", False)
 
     def Configure(self):
         """Read the network architecture, input & output information from config files
@@ -70,6 +71,7 @@ class DeepLearningModule(icetray.I3ConditionalModule):
         self.__cpu_cores = self.GetParameter("cpu_cores")
         self.__gpu_cores = self.GetParameter("gpu_cores")
         self.__remove_daq = self.GetParameter("remove_daq")
+        self.__benchmark = self.GetParameter("benchmark")
         self.__calib_err_key = self.GetParameter("calib_errata")
         self.__bad_dom_key = self.GetParameter("bad_dom_list")
         self.__sat_window_key = self.GetParameter("saturation_windows")
@@ -154,8 +156,9 @@ class DeepLearningModule(icetray.I3ConditionalModule):
         """Batch Process a list of frames.
         This includes pre-processing, prediction and storage of the results
         """
-        timer_t0 = time.time()
         f_slices = []
+        timer_t0 = time.time()
+        benchmark_times = [timer_t0]
         if self.__num_pframes == 0:
             return
         for frame in frames:
@@ -185,14 +188,15 @@ class DeepLearningModule(icetray.I3ConditionalModule):
                     for inp_c, inp in enumerate(inp_branch):
                         f_slice[branch_c][gpos[0]][gpos[1]][gpos[2]][inp_c] =\
                             inp[1](eval(inp[0]))
-            processing_time = time.time() - timer_t0
             f_slices.append(f_slice)
+            benchmark_times.append(time.time())
         predictions = self.__model.predict(np.array(np.squeeze(f_slices,
                                                                axis=1),
                                                     ndmin=5),
                                            batch_size=self.__batch_size,
                                            verbose=0, steps=None)
-        prediction_time = time.time() - processing_time - timer_t0
+        prediction_time = (time.time() - benchmark_times[-1])/len(f_slices)
+        benchmark_times = np.diff(benchmark_times)
         i = 0
         for frame in frames:
             if frame.Stop != icetray.I3Frame.Physics:
@@ -204,11 +208,16 @@ class DeepLearningModule(icetray.I3ConditionalModule):
             for j in range(len(prediction)):
                 output[self.__output_names[j]] = float(prediction[j])
             frame.Put(self.__save_as, output)
+            if self.__benchmark:
+                output_bm = I3MapStringDouble()
+                output_bm['processing'] = benchmark_times[i]
+                output_bm['avg_prediction'] = prediction_time
+                output_bm['batch_size'] = len(f_slices)
+                frame.Put(self.__save_as + '_Benchmark', output_bm)
             i += 1
         tot_time = time.time() - timer_t0
-        print('Total Time {:.2f}s [{:.2f}s], Processing Time {:.2f}s [{:.2f}s], Prediction Time {:.3f}s [{:.3f}s]'.format(
-                tot_time, tot_time / i, processing_time, processing_time / i,
-                prediction_time, prediction_time / i))
+        t_str = 'Total Time {:.2f}s, Processing Time: {:.2f}s/event, Prediction Time {:.3f}s/event'
+        print(t_str.format(tot_time, np.median(benchmark_times), prediction_time))
         return
 
     def Process(self):
@@ -269,7 +278,7 @@ def parseArguments():
     parser.add_argument(
         "--pulsemap", type=str, default="InIceDSTPulses")
     parser.add_argument(
-        "--batch_size", type=int, default=40)
+        "--batch_size", type=int, default=48)
     parser.add_argument(
         "--cpu_cores", type=int, default=1)
     parser.add_argument(
@@ -280,6 +289,9 @@ def parseArguments():
         "--model", type=str, default='classification')
     parser.add_argument(
         "--outfile", type=str, default='None')
+    parser.add_argument(
+        "--benchmark", action='store_true',
+        default=False)
     args = parser.parse_args()
     return args
 
@@ -309,7 +321,8 @@ if __name__ == "__main__":
                    bad_dom_list='BadDomsList',
                    saturation_windows='SaturationWindows',
                    bright_doms='BrightDOMs',
-                   model=args.model,)
+                   model=args.model,
+                   benchmark=args.benchmark)
     tray.AddModule(print_info, 'printer',
                    Streams=[icetray.I3Frame.Physics])
     if args.outfile != 'None':
