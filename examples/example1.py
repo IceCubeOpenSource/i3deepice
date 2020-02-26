@@ -51,8 +51,8 @@ if __name__ == "__main__":
     tray.AddModule(DeepLearningModule, "DeepLearningMod",
                    pulsemap=args.pulsemap,
                    batch_size=args.batch_size,
-                   n_cores=args.n_cores,
-                   remove_daq=args.remove_daq,
+                   cpu_cores=1,
+                   gpu_cores=1,
                    model=args.model)
     tray.AddModule(print_info, 'printer',
                    Streams=[icetray.I3Frame.Physics])
