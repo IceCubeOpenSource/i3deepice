@@ -21,6 +21,7 @@ from icecube import dataclasses, dataio
 import argparse
 import tensorflow as tf
 import tensorflow.keras as keras
+from mc_truth import classify_wrapper
 import importlib
 print('Using keras version {} from {}'.format(keras.__version__,
                                               keras.__path__))
@@ -50,6 +51,7 @@ class DeepLearningModule(icetray.I3ConditionalModule):
         self.AddParameter("bright_doms", "Key for Bright DOMs", 'None')
         self.AddParameter("model", "which model to use", 'classification')
         self.AddParameter("benchmark", "store benchmark results?", False)
+        self.AddParameter("add_truth", "Want to add the true classification?", True)
 
     def Configure(self):
         """Read the network architecture, input & output information from config files
@@ -76,6 +78,7 @@ class DeepLearningModule(icetray.I3ConditionalModule):
         self.__bad_dom_key = self.GetParameter("bad_dom_list")
         self.__sat_window_key = self.GetParameter("saturation_windows")
         self.__bright_doms_key = self.GetParameter("bright_doms")
+        self.__add_truth = self.GetParameter("add_truth")
         self.__frame_buffer = []
         self.__buffer_length = 0
         self.__num_pframes = 0
@@ -184,6 +187,8 @@ class DeepLearningModule(icetray.I3ConditionalModule):
                                   if p.charge > 0]) - t0
                 widths = np.array([p.width for p in pulses[omkey][:]
                                    if p.charge > 0])
+                if len(charges) == 0: # might happen through pulse cleaning
+                    continue
                 for branch_c, inp_branch in enumerate(self.__inputs):
                     for inp_c, inp in enumerate(inp_branch):
                         f_slice[branch_c][gpos[0]][gpos[1]][gpos[2]][inp_c] =\
@@ -214,6 +219,8 @@ class DeepLearningModule(icetray.I3ConditionalModule):
                 output_bm['avg_prediction'] = prediction_time
                 output_bm['batch_size'] = len(f_slices)
                 frame.Put(self.__save_as + '_Benchmark', output_bm)
+            if self.__add_truth:
+                classify_wrapper(frame)
             i += 1
         tot_time = time.time() - timer_t0
         t_str = 'Total Time {:.2f}s, Processing Time: {:.2f}s/event, Prediction Time {:.3f}s/event'
@@ -263,8 +270,11 @@ class DeepLearningModule(icetray.I3ConditionalModule):
 def print_info(phy_frame, key="Deep_Learning_Classification"):
     print('Run_ID {} Event_ID {}'.format(phy_frame['I3EventHeader'].run_id,
                                          phy_frame['I3EventHeader'].event_id))
+    if 'classification_truth' in phy_frame.keys():
+        print('Truth : {}'.format(phy_frame['classification_truth'].value))
     if key in phy_frame.keys():
         print(phy_frame[key])
+    print('\n')
     return
 
 
@@ -292,6 +302,8 @@ def parseArguments():
     parser.add_argument(
         "--benchmark", action='store_true',
         default=False)
+    parser.add_argument(
+        "--add_truth", action='store_false', default=True)
     args = parser.parse_args()
     return args
 
@@ -307,7 +319,7 @@ if __name__ == "__main__":
                           for i in os.listdir(j) if '.i3' in i])
         else:
             files.append(j)
-    files = sorted(files)
+    print('Filelist: {}'.format(files))
     tray = I3Tray()
     tray.AddModule('I3Reader', 'reader',
                    FilenameList=files)
@@ -322,6 +334,7 @@ if __name__ == "__main__":
                    saturation_windows='SaturationWindows',
                    bright_doms='BrightDOMs',
                    model=args.model,
+                   add_truth=args.add_truth,
                    benchmark=args.benchmark)
     tray.AddModule(print_info, 'printer',
                    Streams=[icetray.I3Frame.Physics])
