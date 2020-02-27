@@ -303,7 +303,7 @@ def parseArguments():
         "--benchmark", action='store_true',
         default=False)
     parser.add_argument(
-        "--add_truth", action='store_false', default=True)
+        "--no_truth", action='store_false', default=True)
     args = parser.parse_args()
     return args
 
@@ -334,7 +334,7 @@ if __name__ == "__main__":
                    saturation_windows='SaturationWindows',
                    bright_doms='BrightDOMs',
                    model=args.model,
-                   add_truth=args.add_truth,
+                   add_truth=args.no_truth,
                    benchmark=args.benchmark)
     tray.AddModule(print_info, 'printer',
                    Streams=[icetray.I3Frame.Physics])
