@@ -3,17 +3,20 @@ from I3Tray import *
 import sys
 import numpy as np
 import os
-#sys.path.append(os.environ['DNN_BASE'])
 sys.path.append('../')
 from i3deepice.i3module import DeepLearningModule
 import argparse
 
-def print_info(phy_frame):
+
+def print_info(phy_frame, key="Deep_Learning_Classification"):
     print('Run_ID {} Event_ID {}'.format(phy_frame['I3EventHeader'].run_id,
                                          phy_frame['I3EventHeader'].event_id))
-    print(phy_frame["Deep_Learning_Classification"])
+    if 'classification_truth' in phy_frame.keys():
+        print('Truth:\n{}'.format(phy_frame['classification_truth'].value))
+    if key in phy_frame.keys():
+        print('Prediction:\n{}'.format(phy_frame[key]))
+    print('\n')
     return
-
 
 def parseArguments():
     parser = argparse.ArgumentParser()
@@ -44,7 +47,7 @@ if __name__ == "__main__":
             files.extend([os.path.join(j,i) for i in os.listdir(j) if '.i3' in i])
         else:
             files.append(j)
-    files = sorted(files)
+    files = files
     tray = I3Tray()
     tray.AddModule('I3Reader','reader',
                    FilenameList = files)
