@@ -67,7 +67,8 @@ def crawl_neutrinos(p, I3Tree, level=0, plist = []):
 
 
 def is_data(frame):
-    if ('I3MCWeightDict' in frame) or ('CorsikaWeightMap' in frame) or ('MCPrimary' in frame) or ('I3MCTree' in frame):
+    if ('I3MCWeightDict' in frame) or ('MuonWeight' in frame)  or ('CorsikaWeightMap' in frame) or\
+            ('MCPrimary' in frame) or ('I3MCTree' in frame):
         return False
     else:
         return True

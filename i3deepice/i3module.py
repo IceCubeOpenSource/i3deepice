@@ -220,7 +220,10 @@ class DeepLearningModule(icetray.I3ConditionalModule):
                 output_bm['batch_size'] = len(f_slices)
                 frame.Put(self.__save_as + '_Benchmark', output_bm)
             if self.__add_truth:
-                classify_wrapper(frame)
+                try:
+                    classify_wrapper(frame)
+                except Exception as e:
+                    print('Could not classify')
             i += 1
         tot_time = time.time() - timer_t0
         t_str = 'Total Time {:.2f}s, Processing Time: {:.2f}s/event, Prediction Time {:.3f}s/event'
@@ -271,9 +274,9 @@ def print_info(phy_frame, key="Deep_Learning_Classification"):
     print('Run_ID {} Event_ID {}'.format(phy_frame['I3EventHeader'].run_id,
                                          phy_frame['I3EventHeader'].event_id))
     if 'classification_truth' in phy_frame.keys():
-        print('Truth : {}'.format(phy_frame['classification_truth'].value))
+        print('Truth:\n{}'.format(phy_frame['classification_truth'].value))
     if key in phy_frame.keys():
-        print(phy_frame[key])
+        print('Prediction:\n{}'.format(phy_frame[key]))
     print('\n')
     return
 
