@@ -38,7 +38,7 @@ class DeepLearningModule(icetray.I3ConditionalModule):
         self.AddParameter("pulsemap", "Define the name of the pulsemap",
                           "InIceDSTPulses")
         self.AddParameter("save_as", "Define the Output key",
-                          "Deep_Learning_Classification")
+                          "TUM_dnn_classification")
         self.AddParameter("batch_size", "Size of the batches", 40)
         self.AddParameter("cpu_cores", "number of cores to be used", 1)
         self.AddParameter("gpu_cores", "number of gpu to be used", 1)
@@ -68,6 +68,8 @@ class DeepLearningModule(icetray.I3ConditionalModule):
         self.__inp_trans = self.__runinfo['inp_trans']
         self.__out_trans = self.__runinfo['out_trans']
         self.__pulsemap = self.GetParameter("pulsemap")
+        if isinstance(self.__pulsemap, str):
+            self.__pulsemap = [self.__pulsemap]
         self.__save_as = self.GetParameter("save_as")
         self.__batch_size = self.GetParameter("batch_size")
         self.__cpu_cores = self.GetParameter("cpu_cores")
@@ -159,75 +161,75 @@ class DeepLearningModule(icetray.I3ConditionalModule):
         """Batch Process a list of frames.
         This includes pre-processing, prediction and storage of the results
         """
-        f_slices = []
-        timer_t0 = time.time()
-        benchmark_times = [timer_t0]
-        if self.__num_pframes == 0:
-            return
-        for frame in frames:
-            if frame.Stop != icetray.I3Frame.Physics:
-                continue
-            pulse_key = self.__pulsemap
-            if pulse_key not in frame.keys():
-                print('No Pulsemap called {}..continue without prediction'.format(pulse_key))
-                continue
-            f_slice = []
-            pulses = self.get_cleaned_pulses(frame, pulse_key)
-            t0 = get_t0(pulses)
-            for key in self.__inp_shapes.keys():
-                f_slice.append(np.zeros(self.__inp_shapes[key]['general']))
-            for omkey in pulses.keys():
-                dom = (omkey.string, omkey.om)
-                if dom not in self.__grid.keys():
+        for counter, pulse_key in enumerate(self.__pulsemap):
+            f_slices = []
+            timer_t0 = time.time()
+            benchmark_times = [timer_t0]
+            if self.__num_pframes == 0:
+                return
+            for frame in frames:
+                if frame.Stop != icetray.I3Frame.Physics:
                     continue
-                gpos = self.__grid[dom]
-                charges = np.array([p.charge for p in pulses[omkey][:]
-                                    if p.charge > 0])
-                times = np.array([p.time for p in pulses[omkey][:]
-                                  if p.charge > 0]) - t0
-                widths = np.array([p.width for p in pulses[omkey][:]
-                                   if p.charge > 0])
-                if len(charges) == 0: # might happen through pulse cleaning
+                if pulse_key not in frame.keys():
+                    print('No Pulsemap called {}..continue without prediction'.format(pulse_key))
                     continue
-                for branch_c, inp_branch in enumerate(self.__inputs):
-                    for inp_c, inp in enumerate(inp_branch):
-                        f_slice[branch_c][gpos[0]][gpos[1]][gpos[2]][inp_c] =\
-                            inp[1](eval(inp[0]))
-            f_slices.append(f_slice)
-            benchmark_times.append(time.time())
-        predictions = self.__model.predict(np.array(np.squeeze(f_slices,
-                                                               axis=1),
-                                                    ndmin=5),
-                                           batch_size=self.__batch_size,
-                                           verbose=0, steps=None)
-        prediction_time = (time.time() - benchmark_times[-1])/len(f_slices)
-        benchmark_times = np.diff(benchmark_times)
-        i = 0
-        for frame in frames:
-            if frame.Stop != icetray.I3Frame.Physics:
-                continue
-            if pulse_key not in frame.keys():
-                continue
-            output = I3MapStringDouble()
-            prediction = np.concatenate(np.atleast_2d(predictions[i]))
-            for j in range(len(prediction)):
-                output[self.__output_names[j]] = float(prediction[j])
-            frame.Put(self.__save_as, output)
-            if self.__benchmark:
-                output_bm = I3MapStringDouble()
-                output_bm['processing'] = benchmark_times[i]
-                output_bm['avg_prediction'] = prediction_time
-                output_bm['batch_size'] = len(f_slices)
-                frame.Put(self.__save_as + '_Benchmark', output_bm)
-            if self.__add_truth:
-                try:
-                    classify_wrapper(frame)
-                except Exception as e:
-                    print('Could not classify')
-            i += 1
-        tot_time = time.time() - timer_t0
-        t_str = 'Total Time {:.2f}s, Processing Time: {:.2f}s/event, Prediction Time {:.3f}s/event'
-        print(t_str.format(tot_time, np.median(benchmark_times), prediction_time))
+                f_slice = []
+                pulses = self.get_cleaned_pulses(frame, pulse_key)
+                t0 = get_t0(pulses)
+                for key in self.__inp_shapes.keys():
+                    f_slice.append(np.zeros(self.__inp_shapes[key]['general']))
+                for omkey in pulses.keys():
+                    dom = (omkey.string, omkey.om)
+                    if dom not in self.__grid.keys():
+                        continue
+                    gpos = self.__grid[dom]
+                    charges = np.array([p.charge for p in pulses[omkey][:]
+                                        if p.charge > 0])
+                    times = np.array([p.time for p in pulses[omkey][:]
+                                      if p.charge > 0]) - t0
+                    widths = np.array([p.width for p in pulses[omkey][:]
+                                       if p.charge > 0])
+                    if len(charges) == 0: # might happen through pulse cleaning
+                        continue
+                    for branch_c, inp_branch in enumerate(self.__inputs):
+                        for inp_c, inp in enumerate(inp_branch):
+                            f_slice[branch_c][gpos[0]][gpos[1]][gpos[2]][inp_c] =\
+                                inp[1](eval(inp[0]))
+                f_slices.append(f_slice)
+                benchmark_times.append(time.time())
+            predictions = self.__model.predict(np.array(np.squeeze(f_slices,
+                                                                   axis=1),
+                                                        ndmin=5),
+                                               batch_size=self.__batch_size,
+                                               verbose=0, steps=None)
+            prediction_time = (time.time() - benchmark_times[-1])/len(f_slices)
+            benchmark_times = np.diff(benchmark_times)
+            i = 0
+            for frame in frames:
+                if frame.Stop != icetray.I3Frame.Physics:
+                    continue
+                if pulse_key not in frame.keys():
+                    continue
+                output = I3MapStringDouble()
+                prediction = np.concatenate(np.atleast_2d(predictions[i]))
+                for j in range(len(prediction)):
+                    output[self.__output_names[j]] = float(prediction[j])
+                frame.Put(self.__save_as + '_' + pulse_key, output)
+                if self.__benchmark & (counter==0):
+                    output_bm = I3MapStringDouble()
+                    output_bm['processing'] = benchmark_times[i]
+                    output_bm['avg_prediction'] = prediction_time
+                    output_bm['batch_size'] = len(f_slices)
+                    frame.Put(self.__save_as + '_Benchmark', output_bm)
+                if self.__add_truth and not ('classification_truth' in frame.keys()):
+                    try:
+                        classify_wrapper(frame)
+                    except Exception as e:
+                        print('Failed while calculating the truth...')
+                i += 1
+            tot_time = time.time() - timer_t0
+            t_str = 'Total Time {:.2f}s, Processing Time: {:.2f}s/event, Prediction Time {:.3f}s/event \n'
+            print(t_str.format(tot_time, np.median(benchmark_times), prediction_time))
         return
 
     def Process(self):
@@ -270,13 +272,17 @@ class DeepLearningModule(icetray.I3ConditionalModule):
         return
 
 
-def print_info(phy_frame, key="Deep_Learning_Classification"):
+def print_info(phy_frame, pulsemap, key="TUM_dnn_classification",):
     print('Run_ID {} Event_ID {}'.format(phy_frame['I3EventHeader'].run_id,
                                          phy_frame['I3EventHeader'].event_id))
     if 'classification_truth' in phy_frame.keys():
         print('Truth:\n{}'.format(phy_frame['classification_truth'].value))
-    if key in phy_frame.keys():
-        print('Prediction:\n{}'.format(phy_frame[key]))
+    for p in pulsemap:
+        key_all = key+'_'+p
+        if key_all in phy_frame.keys():
+            print('Prediction ({}) :\n{}'.format(p, phy_frame[key_all]))
+        else:
+            print('Key {} does not exist in frame'.format(key_all))
     print('\n')
     return
 
@@ -289,7 +295,7 @@ def parseArguments():
     parser.add_argument(
         "--plot", action="store_true", default=False)
     parser.add_argument(
-        "--pulsemap", type=str, default="InIceDSTPulses")
+        "--pulsemap", type=str, default="InIceDSTPulses", nargs='+')
     parser.add_argument(
         "--batch_size", type=int, default=48)
     parser.add_argument(
@@ -340,6 +346,7 @@ if __name__ == "__main__":
                    add_truth=args.no_truth,
                    benchmark=args.benchmark)
     tray.AddModule(print_info, 'printer',
+                   pulsemap = args.pulsemap,
                    Streams=[icetray.I3Frame.Physics])
     if args.outfile != 'None':
         tray.AddModule("I3Writer", 'writer',
@@ -347,5 +354,5 @@ if __name__ == "__main__":
     if args.plot:
         tray.AddModule(make_plot, 'plotter',
                        Streams=[icetray.I3Frame.Physics])
-    tray.Execute()
+    tray.Execute(30)
     tray.Finish()
