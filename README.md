@@ -57,7 +57,7 @@ tray.AddModule(DeepLearningModule, 'dnn_classification',
 #                calib_errata='CalibrationErrata',
 #                bad_dom_list='BadDomsList',
 #                saturation_windows='SaturationWindows',
-                bright_doms='BrightDOMs',
+#                bright_doms='BrightDOMs',
                 save_as='TUM_classification')
 ```
 
