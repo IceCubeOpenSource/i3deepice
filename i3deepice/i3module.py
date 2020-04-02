@@ -108,7 +108,10 @@ class DeepLearningModule(icetray.I3ConditionalModule):
 
 
         print("Pulsemap {},  Store results under {}".format(self.__pulsemap, self.__save_as))
-        func_model_def = importlib.import_module('i3deepice.models.{}.model'.format(self.GetParameter("model")))
+        if __name__ == "__main__":
+            func_model_def = importlib.import_module('models.{}.model'.format(self.GetParameter("model")))
+        else:
+            func_model_def = importlib.import_module('i3deepice.models.{}.model'.format(self.GetParameter("model")))
         self.__output_names = func_model_def.output_names
         self.__model = func_model_def.model(self.__inp_shapes,
                                             self.__out_shapes)
@@ -226,6 +229,7 @@ class DeepLearningModule(icetray.I3ConditionalModule):
                         classify_wrapper(frame)
                     except Exception as e:
                         print('Failed while calculating the truth...')
+                        print(e)
                 i += 1
             tot_time = time.time() - timer_t0
             t_str = 'Total Time {:.2f}s, Processing Time: {:.2f}s/event, Prediction Time {:.3f}s/event \n'
@@ -307,6 +311,8 @@ def parseArguments():
     parser.add_argument(
         "--model", type=str, default='classification')
     parser.add_argument(
+        "--save_as", type=str, default="TUM_dnn_classification")
+    parser.add_argument(
         "--outfile", type=str, default='None')
     parser.add_argument(
         "--benchmark", action='store_true',
@@ -341,12 +347,14 @@ if __name__ == "__main__":
                    calib_errata='CalibrationErrata',
                    bad_dom_list='BadDomsList',
                    saturation_windows='SaturationWindows',
-#                   bright_doms='BrightDOMs',
+#                  bright_doms='BrightDOMs',
                    model=args.model,
                    add_truth=args.no_truth,
+                   save_as = args.save_as,
                    benchmark=args.benchmark)
     tray.AddModule(print_info, 'printer',
                    pulsemap = args.pulsemap,
+                   key=args.save_as,
                    Streams=[icetray.I3Frame.Physics])
     if args.outfile != 'None':
         tray.AddModule("I3Writer", 'writer',
@@ -354,5 +362,5 @@ if __name__ == "__main__":
     if args.plot:
         tray.AddModule(make_plot, 'plotter',
                        Streams=[icetray.I3Frame.Physics])
-    tray.Execute(30)
+    tray.Execute(20)
     tray.Finish()
