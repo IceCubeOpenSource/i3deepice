@@ -335,6 +335,7 @@ if __name__ == "__main__":
         else:
             files.append(j)
     print('Filelist: {}'.format(files))
+    args.pulsemap = np.atleast_1d(args.pulsemap)
     tray = I3Tray()
     tray.AddModule('I3Reader', 'reader',
                    FilenameList=files)
@@ -344,8 +345,8 @@ if __name__ == "__main__":
                    cpu_cores=args.cpu_cores,
                    gpu_cores=args.gpu_cores,
                    remove_daq=args.remove_daq,
-                   calib_errata='CalibrationErrata',
-                   bad_dom_list='BadDomsList',
+#                   calib_errata='CalibrationErrata',
+#                   bad_dom_list='BadDomsList',
                    saturation_windows='SaturationWindows',
 #                  bright_doms='BrightDOMs',
                    model=args.model,
