@@ -67,23 +67,30 @@ class DeepLearningModule(icetray.I3ConditionalModule):
         self.__out_shapes = self.__runinfo['out_shapes']
         self.__inp_trans = self.__runinfo['inp_trans']
         self.__out_trans = self.__runinfo['out_trans']
-        self.__pulsemap = self.GetParameter("pulsemap")
-        if isinstance(self.__pulsemap, str):
-            self.__pulsemap = [self.__pulsemap]
+        self.__pulsemap = list(self.GetParameter("pulsemap"))
         self.__save_as = self.GetParameter("save_as")
         self.__batch_size = self.GetParameter("batch_size")
         self.__cpu_cores = self.GetParameter("cpu_cores")
         self.__gpu_cores = self.GetParameter("gpu_cores")
         self.__remove_daq = self.GetParameter("remove_daq")
         self.__benchmark = self.GetParameter("benchmark")
-        self.__calib_err_key = self.GetParameter("calib_errata")
-        self.__bad_dom_key = self.GetParameter("bad_dom_list")
-        self.__sat_window_key = self.GetParameter("saturation_windows")
-        self.__bright_doms_key = self.GetParameter("bright_doms")
+        self.__calib_err_key = list(self.GetParameter("calib_errata"))
+        self.__bad_dom_key = list(self.GetParameter("bad_dom_list"))
+        self.__sat_window_key = list(self.GetParameter("saturation_windows"))
+        self.__bright_doms_key = list(self.GetParameter("bright_doms"))
         self.__add_truth = self.GetParameter("add_truth")
         self.__frame_buffer = []
         self.__buffer_length = 0
         self.__num_pframes = 0
+        pulse_info_vars = [self.__pulsemap, self.__calib_err_key, self.__bad_dom_key,
+                           self.__sat_window_key, self.__bright_doms_key]
+        pulse_info_lens = [len(i) for i in pulse_info_var]
+        max_len = np.max(pulse_info_lens)
+        for  pulse_info_var in pulse_info_vars:
+            if len(pulse_info_var) == 1:
+                pulse_info_var = pulse_info_var.extend([pulse_info_var[0] * (max_len - 1)])
+            elif len(pulse_info_var) != max_len:
+                raise ValueError('Array length do not match. Either give a full list or a single string, got {}'.format(pulse_info_var))
         dataset_configparser = ConfigParser()
         dataset_configparser.read(os.path.join(dirname,'models/{}/config.cfg'.format(self.GetParameter("model"))))
         inp_defs = dict()
@@ -124,22 +131,24 @@ class DeepLearningModule(icetray.I3ConditionalModule):
         tf.compat.v1.keras.backend.set_session(sess)
         self.__model.load_weights(os.path.join(dirname, 'models/{}/weights.npy'.format(self.GetParameter("model"))))
 
-    def get_cleaned_pulses(self, frame, pulse_key):
+    def get_cleaned_pulses(self, frame, pulse_key, bright_dom_key='None'
+                           bad_dom_key = 'None', calib_err_key = 'None',
+                           sat_window_key = 'None'):
         if isinstance(frame[pulse_key],
                       dataclasses.I3RecoPulseSeriesMapMask):
             pulses = frame[pulse_key].apply(frame)
         else:
             pulses = frame[pulse_key]
-        if self.__bright_doms_key in frame.keys():
-            for bright_dom in frame[self.__bright_doms_key]:
+        if bright_dom_key in frame.keys():
+            for bright_dom in frame[bright_dom_key]:
                 if bright_dom in pulses.keys():
                     pulses.pop(bright_dom)
-        if self.__bad_dom_key in frame.keys():
-            for bad_dom in frame[self.__bad_dom_key]:
+        if bad_dom_key in frame.keys():
+            for bad_dom in frame[bad_dom_key]:
                 if bad_dom in pulses.keys():
                     pulses.pop(bad_dom)
-        if self.__calib_err_key in frame.keys():
-            for errata in frame[self.__calib_err_key]:
+        if calib_err_key in frame.keys():
+            for errata in frame[calib_err_key]:
                 if errata.key() not in pulses.keys():
                     continue
                 single_dom_pulses = pulses[errata.key()]
@@ -148,8 +157,8 @@ class DeepLearningModule(icetray.I3ConditionalModule):
                         if (spulse.time > it_errata.start) &\
                            (spulse.time < it_errata.stop):
                             spulse.charge = 0
-        if self.__sat_window_key in frame.keys():
-            for errata in frame[self.__sat_window_key]:
+        if sat_window_key in frame.keys():
+            for errata in frame[sat_window_key]:
                 if errata.key() not in pulses.keys():
                     continue
                 single_dom_pulses = pulses[errata.key()]
@@ -177,7 +186,12 @@ class DeepLearningModule(icetray.I3ConditionalModule):
                     print('No Pulsemap called {}..continue without prediction'.format(pulse_key))
                     continue
                 f_slice = []
-                pulses = self.get_cleaned_pulses(frame, pulse_key)
+                pulses = self.get_cleaned_pulses(
+                                frame, pulse_key, 
+                                bright_dom_key = self.__bright_doms_key[counter],
+                                bad_dom_key = self.__bad_dom_key[counter],
+                                calib_err_key = self.__calib_err_key[counter],
+                                sat_window_key = self.__sat_window_key[counter])
                 t0 = get_t0(pulses)
                 for key in self.__inp_shapes.keys():
                     f_slice.append(np.zeros(self.__inp_shapes[key]['general']))
