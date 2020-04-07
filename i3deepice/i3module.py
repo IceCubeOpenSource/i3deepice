@@ -67,28 +67,34 @@ class DeepLearningModule(icetray.I3ConditionalModule):
         self.__out_shapes = self.__runinfo['out_shapes']
         self.__inp_trans = self.__runinfo['inp_trans']
         self.__out_trans = self.__runinfo['out_trans']
-        self.__pulsemap = list(self.GetParameter("pulsemap"))
-        self.__save_as = list(self.GetParameter("save_as"))
+        self.__pulsemap = self.GetParameter("pulsemap")
+        if isinstance(self.__pulsemap, str): self.__pulsemap = [self.__pulsemap]
+        self.__save_as = self.GetParameter("save_as")
+        if isinstance(self.__save_as, str): self.__save_as = [self.__save_as]
         self.__batch_size = self.GetParameter("batch_size")
         self.__cpu_cores = self.GetParameter("cpu_cores")
         self.__gpu_cores = self.GetParameter("gpu_cores")
         self.__remove_daq = self.GetParameter("remove_daq")
         self.__benchmark = self.GetParameter("benchmark")
-        self.__calib_err_key = list(self.GetParameter("calib_errata"))
-        self.__bad_dom_key = list(self.GetParameter("bad_dom_list"))
-        self.__sat_window_key = list(self.GetParameter("saturation_windows"))
-        self.__bright_doms_key = list(self.GetParameter("bright_doms"))
+        self.__calib_err_key = self.GetParameter("calib_errata")
+        if isinstance(self.__calib_err_key, str): self.__calib_err_key = [self.__calib_err_key]
+        self.__bad_dom_key = self.GetParameter("bad_dom_list")
+        if isinstance(self.__bad_dom_key, str): self.__bad_dom_key = [self.__bad_dom_key]
+        self.__sat_window_key = self.GetParameter("saturation_windows")
+        if isinstance(self.__sat_window_key, str): self.__sat_window_key = [self.__sat_window_key]
+        self.__bright_doms_key = self.GetParameter("bright_doms")
+        if isinstance(self.__bright_doms_key, str): self.__bright_doms_key = [self.__bright_doms_key]
         self.__add_truth = self.GetParameter("add_truth")
         self.__frame_buffer = []
         self.__buffer_length = 0
         self.__num_pframes = 0
         pulse_info_vars = [self.__pulsemap, self.__calib_err_key, self.__bad_dom_key,
                            self.__sat_window_key, self.__bright_doms_key]
-        pulse_info_lens = [len(i) for i in pulse_info_var]
+        pulse_info_lens = [len(i) for i in pulse_info_vars]
         max_len = np.max(pulse_info_lens)
         for  pulse_info_var in pulse_info_vars:
             if len(pulse_info_var) == 1:
-                pulse_info_var = pulse_info_var.extend([pulse_info_var[0] * (max_len - 1)])
+                pulse_info_var = pulse_info_var.extend([pulse_info_var[0]] * (max_len - 1))
             elif len(pulse_info_var) != max_len:
                 raise ValueError('Array length do not match. Either give a full list or a single string, got {}'.format(pulse_info_var))
         if (len(self.__save_as) == 1) & (max_len > 1):
@@ -138,7 +144,7 @@ class DeepLearningModule(icetray.I3ConditionalModule):
         tf.compat.v1.keras.backend.set_session(sess)
         self.__model.load_weights(os.path.join(dirname, 'models/{}/weights.npy'.format(self.GetParameter("model"))))
 
-    def get_cleaned_pulses(self, frame, pulse_key, bright_dom_key='None'
+    def get_cleaned_pulses(self, frame, pulse_key, bright_dom_key='None',
                            bad_dom_key = 'None', calib_err_key = 'None',
                            sat_window_key = 'None'):
         if isinstance(frame[pulse_key],
@@ -194,7 +200,7 @@ class DeepLearningModule(icetray.I3ConditionalModule):
                     continue
                 f_slice = []
                 pulses = self.get_cleaned_pulses(
-                                frame, pulse_key, 
+                                frame, pulse_key,
                                 bright_dom_key = self.__bright_doms_key[counter],
                                 bad_dom_key = self.__bad_dom_key[counter],
                                 calib_err_key = self.__calib_err_key[counter],
@@ -297,7 +303,7 @@ class DeepLearningModule(icetray.I3ConditionalModule):
         return
 
 
-def print_info(phy_frame, save_as):
+def print_info(phy_frame, save_as='TUM_dnn_classification'):
     print('Run_ID {} Event_ID {}'.format(phy_frame['I3EventHeader'].run_id,
                                          phy_frame['I3EventHeader'].event_id))
     if 'classification_truth' in phy_frame.keys():

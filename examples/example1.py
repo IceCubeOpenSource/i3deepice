@@ -4,19 +4,8 @@ import sys
 import numpy as np
 import os
 sys.path.append('../')
-from i3deepice.i3module import DeepLearningModule
+from i3deepice.i3module import DeepLearningModule, print_info
 import argparse
-
-
-def print_info(phy_frame, key="Deep_Learning_Classification"):
-    print('Run_ID {} Event_ID {}'.format(phy_frame['I3EventHeader'].run_id,
-                                         phy_frame['I3EventHeader'].event_id))
-    if 'classification_truth' in phy_frame.keys():
-        print('Truth:\n{}'.format(phy_frame['classification_truth'].value))
-    if key in phy_frame.keys():
-        print('Prediction:\n{}'.format(phy_frame[key]))
-    print('\n')
-    return
 
 def parseArguments():
     parser = argparse.ArgumentParser()
@@ -48,16 +37,22 @@ if __name__ == "__main__":
         else:
             files.append(j)
     files = files
+    save_as_base = 'TUM_dnn_classifiation_test'
+    save_as = [save_as_base + '_sat', save_as_base + '_sat_bright', save_as_base + '_bright']
     tray = I3Tray()
     tray.AddModule('I3Reader','reader',
                    FilenameList = files)
     tray.AddModule(DeepLearningModule, "DeepLearningMod",
                    pulsemap=args.pulsemap,
                    batch_size=args.batch_size,
+                   saturation_windows=['SaturationWindows', 'SaturationWindows', 'None'],
+                   bright_doms=['None', 'BrightDOMs', 'BrightDOMs'],
                    cpu_cores=1,
                    gpu_cores=1,
-                   model=args.model)
+                   model=args.model,
+                   save_as = save_as) #save_as_base
     tray.AddModule(print_info, 'printer',
+                   save_as = save_as_base,
                    Streams=[icetray.I3Frame.Physics])
     tray.AddModule("I3Writer", 'writer',
                    Filename=args.outfile)
