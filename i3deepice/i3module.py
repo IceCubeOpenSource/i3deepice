@@ -68,7 +68,7 @@ class DeepLearningModule(icetray.I3ConditionalModule):
         self.__inp_trans = self.__runinfo['inp_trans']
         self.__out_trans = self.__runinfo['out_trans']
         self.__pulsemap = list(self.GetParameter("pulsemap"))
-        self.__save_as = self.GetParameter("save_as")
+        self.__save_as = list(self.GetParameter("save_as"))
         self.__batch_size = self.GetParameter("batch_size")
         self.__cpu_cores = self.GetParameter("cpu_cores")
         self.__gpu_cores = self.GetParameter("gpu_cores")
@@ -91,6 +91,13 @@ class DeepLearningModule(icetray.I3ConditionalModule):
                 pulse_info_var = pulse_info_var.extend([pulse_info_var[0] * (max_len - 1)])
             elif len(pulse_info_var) != max_len:
                 raise ValueError('Array length do not match. Either give a full list or a single string, got {}'.format(pulse_info_var))
+        if (len(self.__save_as) == 1) & (max_len > 1):
+            s0 = self.__save_as[0]
+            self.__save_as = [s0 + '_{}'.format(i) for i in range(max_len)]
+        else:
+            if len(self.__save_as) != max_len:
+                raise ValueError('Save_as array length does not match. Either give full list or string')
+
         dataset_configparser = ConfigParser()
         dataset_configparser.read(os.path.join(dirname,'models/{}/config.cfg'.format(self.GetParameter("model"))))
         inp_defs = dict()
@@ -231,13 +238,13 @@ class DeepLearningModule(icetray.I3ConditionalModule):
                 prediction = np.concatenate(np.atleast_2d(predictions[i]))
                 for j in range(len(prediction)):
                     output[self.__output_names[j]] = float(prediction[j])
-                frame.Put(self.__save_as + '_' + pulse_key, output)
+                frame.Put(self.__save_as[counter], output)
                 if self.__benchmark & (counter==0):
                     output_bm = I3MapStringDouble()
                     output_bm['processing'] = benchmark_times[i]
                     output_bm['avg_prediction'] = prediction_time
                     output_bm['batch_size'] = len(f_slices)
-                    frame.Put(self.__save_as + '_Benchmark', output_bm)
+                    frame.Put(self.__save_as[counter] + '_Benchmark', output_bm)
                 if self.__add_truth and not ('classification_truth' in frame.keys()):
                     try:
                         classify_wrapper(frame)
@@ -290,15 +297,16 @@ class DeepLearningModule(icetray.I3ConditionalModule):
         return
 
 
-def print_info(phy_frame, pulsemap, key="TUM_dnn_classification",):
+def print_info(phy_frame, save_as):
     print('Run_ID {} Event_ID {}'.format(phy_frame['I3EventHeader'].run_id,
                                          phy_frame['I3EventHeader'].event_id))
     if 'classification_truth' in phy_frame.keys():
         print('Truth:\n{}'.format(phy_frame['classification_truth'].value))
-    for p in pulsemap:
-        key_all = key+'_'+p
-        if key_all in phy_frame.keys():
-            print('Prediction ({}) :\n{}'.format(p, phy_frame[key_all]))
+    if isinstance(save_as, str):
+        keys = [key for key in phy_frame.keys() if save_as in key]
+    for key in keys:
+        if key in phy_frame.keys():
+            print('Prediction ({}) :\n{}'.format(key, phy_frame[key]))
         else:
             print('Key {} does not exist in frame'.format(key_all))
     print('\n')
@@ -367,8 +375,7 @@ if __name__ == "__main__":
                    save_as = args.save_as,
                    benchmark=args.benchmark)
     tray.AddModule(print_info, 'printer',
-                   pulsemap = args.pulsemap,
-                   key=args.save_as,
+                   save_as=args.save_as,
                    Streams=[icetray.I3Frame.Physics])
     if args.outfile != 'None':
         tray.AddModule("I3Writer", 'writer',
