@@ -53,7 +53,7 @@ tray.AddModule(DeepLearningModule, 'dnn_classification',
                 cpu_cores=4,
                 gpu_cores=1,
                 model='classification',
-                add_truth=True, ## If true, classification truth from I3MCTree is added to the frame 
+                add_truth=True,  
                 pulsemap='SplitInIcePulses',
                 save_as='TUM_classification')
 ```
