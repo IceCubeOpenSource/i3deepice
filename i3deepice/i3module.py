@@ -310,6 +310,8 @@ def print_info(phy_frame, save_as='TUM_dnn_classification'):
         print('Truth:\n{}'.format(phy_frame['classification_truth'].value))
     if isinstance(save_as, str):
         keys = [key for key in phy_frame.keys() if save_as in key]
+    else:
+        keys = save_as
     for key in keys:
         if key in phy_frame.keys():
             print('Prediction ({}) :\n{}'.format(key, phy_frame[key]))
