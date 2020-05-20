@@ -1,8 +1,8 @@
-request_gpus = 1
-request_cpus = 1 
-request_memory = 3GB
-output = /data/user/tglauch/test.out
-error = /data/user/tglauch/test.err
-log = /scratch/tglauch/test.log
+request_gpus = 2
+request_cpus = 2
+request_memory = 5GB
+output = /data/user/$ENV(USER)/test.out
+error = /data/user/$ENV(USER)/test.err
+log = /scratch/$ENV(USER)/test.log
 Requirements = has_avx && CUDACapability
 queue 1

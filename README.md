@@ -10,7 +10,7 @@ The IceCube public repository provides a docker/singularity contrainer with all 
 
 # 1. Installation & Usage
 
-The package can be simply installed by running `python setup.py install`. As an alternative add the path to the tool's main folder to your `$PYTHONPATH` (this might especially the easier option if you work on Icecube's NPX cluster). 
+The package can be simply installed by running `python setup.py install`. As an alternative add the path to the tool's main folder to your `$PYTHONPATH` (this might especially the easier option if you work on Icecube's NPX cluster) or to archive the same use pythons `sys` module and append the path to the folder by evoking `sys.path.append(/path/to/folde)` directly in your script.
 
 All the functionality is provided by the main script `i3module.py`. There are two ways of running the software after loading the icecube environment (and potential GPU libraries):
 
@@ -50,14 +50,11 @@ Using the module is fairly simple. Just import it and add it to the IceTray as u
 from i3deepice.i3module import DeepLearningModule
 tray.AddModule(DeepLearningModule, 'dnn_classification',
                 batch_size=128,
-                cpu_cores=1,
+                cpu_cores=4,
                 gpu_cores=1,
                 model='classification',
-                pulsemap='InIceDSTPulses',
-#                calib_errata='CalibrationErrata',
-#                bad_dom_list='BadDomsList',
-#                saturation_windows='SaturationWindows',
-#                bright_doms='BrightDOMs',
+                add_truth=True, ## If true, classification truth from I3MCTree is added to the frame 
+                pulsemap='SplitInIcePulses',
                 save_as='TUM_classification')
 ```
 
