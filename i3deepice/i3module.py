@@ -27,6 +27,12 @@ print('Using keras version {} from {}'.format(keras.__version__,
                                               keras.__path__))
 
 
+from tensorflow.python.client import device_lib
+
+def get_available_gpus():
+    local_device_protos = device_lib.list_local_devices()
+    return [x.name for x in local_device_protos if x.device_type == 'GPU']
+
 class DeepLearningModule(icetray.I3ConditionalModule):
     """IceTray compatible class of the  Deep Learning Classifier
     """
@@ -42,8 +48,7 @@ class DeepLearningModule(icetray.I3ConditionalModule):
         self.AddParameter("batch_size", "Size of the batches", 40)
         self.AddParameter("cpu_cores", "number of cores to be used", 1)
         self.AddParameter("gpu_cores", "number of gpu to be used", 1)
-        self.AddParameter("remove_daq", "whether or not to remove Q-Frames",
-                          False)
+        self.AddParameter("gpu_id", "specify gpu id", None)
         self.AddParameter("calib_errata", "Key for Calibration Errata", 'None')
         self.AddParameter("bad_dom_list", "Key for Bad Doms", 'None')
         self.AddParameter("saturation_windows", "Key for Saturation Windows?",
@@ -74,7 +79,7 @@ class DeepLearningModule(icetray.I3ConditionalModule):
         self.__batch_size = self.GetParameter("batch_size")
         self.__cpu_cores = self.GetParameter("cpu_cores")
         self.__gpu_cores = self.GetParameter("gpu_cores")
-        self.__remove_daq = self.GetParameter("remove_daq")
+        self.__gpu_id = self.GetParameter("gpu_id")
         self.__benchmark = self.GetParameter("benchmark")
         self.__calib_err_key = self.GetParameter("calib_errata")
         if isinstance(self.__calib_err_key, str): self.__calib_err_key = [self.__calib_err_key]
@@ -139,10 +144,14 @@ class DeepLearningModule(icetray.I3ConditionalModule):
                                           inter_op_parallelism_threads=self.__cpu_cores,
                                           device_count={'GPU': self.__gpu_cores ,
                                                         'CPU': self.__cpu_cores},
+                                          allow_soft_placement=True,
                                           log_device_placement=False)
-        sess = tf.compat.v1.Session(config=config)
-        tf.compat.v1.keras.backend.set_session(sess)
+        config.gpu_options.allow_growth = True
+        self.sess = tf.compat.v1.Session(config=config)
+        self.graph = tf.get_default_graph()
+        tf.compat.v1.keras.backend.set_session(self.sess)
         self.__model.load_weights(os.path.join(dirname, 'models/{}/weights.npy'.format(self.GetParameter("model"))))
+        return
 
     def get_cleaned_pulses(self, frame, pulse_key, bright_dom_key='None',
                            bad_dom_key = 'None', calib_err_key = 'None',
@@ -227,11 +236,16 @@ class DeepLearningModule(icetray.I3ConditionalModule):
                                 inp[1](eval(inp[0]))
                 f_slices.append(f_slice)
                 benchmark_times.append(time.time())
-            predictions = self.__model.predict(np.array(np.squeeze(f_slices,
-                                                                   axis=1),
-                                                        ndmin=5),
-                                               batch_size=self.__batch_size,
-                                               verbose=0, steps=None)
+            tf.compat.v1.keras.backend.set_session(self.sess)
+            try:
+                predictions = self.__model.predict(np.array(np.squeeze(f_slices,
+                                                                       axis=1),
+                                                            ndmin=5),
+                                                   batch_size=self.__batch_size,
+                                                   verbose=0, steps=None)
+            except Exception as e:
+                print(e.message, e.args)
+                return
             prediction_time = (time.time() - benchmark_times[-1])/len(f_slices)
             benchmark_times = np.diff(benchmark_times)
             i = 0
@@ -289,8 +303,7 @@ class DeepLearningModule(icetray.I3ConditionalModule):
     def DAQ(self, frame):
         """ Handel Q-Frames. Append to buffer if they should be kept
         """
-        if not self.__remove_daq:
-            self.__frame_buffer.append(frame)
+        self.__frame_buffer.append(frame)
         return
 
     def Finish(self):
@@ -337,8 +350,6 @@ def parseArguments():
     parser.add_argument(
         "--gpu_cores", type=int, default=1)
     parser.add_argument(
-        "--remove_daq", action='store_true', default=False)
-    parser.add_argument(
         "--model", type=str, default='classification')
     parser.add_argument(
         "--save_as", type=str, default="TUM_dnn_classification")
@@ -374,11 +385,6 @@ if __name__ == "__main__":
                    batch_size=args.batch_size,
                    cpu_cores=args.cpu_cores,
                    gpu_cores=args.gpu_cores,
-                   remove_daq=args.remove_daq,
-#                   calib_errata='CalibrationErrata',
-#                   bad_dom_list='BadDomsList',
-                   saturation_windows='SaturationWindows',
-#                  bright_doms='BrightDOMs',
                    model=args.model,
                    add_truth=args.no_truth,
                    save_as = args.save_as,
