@@ -363,7 +363,6 @@ if __name__ == "__main__":
         else:
             files.append(j)
     print('Filelist: {}'.format(files))
-    args.pulsemap = np.atleast_1d(args.pulsemap)
     tray = I3Tray()
     tray.AddModule('I3Reader', 'reader',
                    FilenameList=files)
@@ -390,5 +389,5 @@ if __name__ == "__main__":
     if args.plot:
         tray.AddModule(make_plot, 'plotter',
                        Streams=[icetray.I3Frame.Physics])
-    tray.Execute(20)
+    tray.Execute()
     tray.Finish()
