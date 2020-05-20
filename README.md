@@ -50,14 +50,11 @@ Using the module is fairly simple. Just import it and add it to the IceTray as u
 from i3deepice.i3module import DeepLearningModule
 tray.AddModule(DeepLearningModule, 'dnn_classification',
                 batch_size=128,
-                cpu_cores=1,
+                cpu_cores=4,
                 gpu_cores=1,
                 model='classification',
-                pulsemap='InIceDSTPulses',
-#                calib_errata='CalibrationErrata',
-#                bad_dom_list='BadDomsList',
-#                saturation_windows='SaturationWindows',
-#                bright_doms='BrightDOMs',
+                add_truth=True, ## If true, classification truth from I3MCTree is added to the frame 
+                pulsemap='SplitInIcePulses',
                 save_as='TUM_classification')
 ```
 
